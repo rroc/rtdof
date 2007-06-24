@@ -21,6 +21,7 @@ void main(void)
 
    // Basic lighting with phong
    float diffuse = dot(lightDir.xyz, vNormal);
+   
    float specular = pow(clamp(dot(reflect(normalize(vViewVec), vNormal), lightDir.xyz),0.0, 1.0), 16.0);
    vec3  light = Kd * diffuse* vVertexColor.rgb + Ks * specular;
 

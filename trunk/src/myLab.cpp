@@ -85,7 +85,7 @@ void initOpenGL()
 	glutReshapeFunc(  ResizeSceneWithRenderer );
 
 	//Init view
-	glClearColor (0.9, 0.9, 1.0, 0.7);
+	glClearColor (0.1, 0.1, 0.3, 1.0);
 
 	// Projection transformation
     glMatrixMode(GL_PROJECTION); // Specifies which matrix stack is the target for matrix operations
@@ -95,9 +95,11 @@ void initOpenGL()
 
 
 	glShadeModel(GL_SMOOTH); //GL_FLAT | GL_SMOOTH;
-	//glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Texture mapping perspective correction
+	//glShadeModel( GL_FLAT ); // | GL_SMOOTH;
+
+	glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Texture mapping perspective correction
     //glEnable(GL_TEXTURE_2D); // Texture mapping ON
-    //glPolygonMode (GL_FRONT_AND_BACK, GL_FILL); // Polygon rasterization mode (polygon filled)
+    glPolygonMode (GL_FRONT_AND_BACK, GL_FILL); // Polygon rasterization mode (polygon filled)
 
 	glEnable(GL_CULL_FACE); // Enable the back face culling
 
@@ -108,9 +110,11 @@ void initOpenGL()
 	glLoadIdentity ();
 
 #ifdef USE_VERTEX_ARRAYS
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
+	glEnableClientState(GL_NORMAL_ARRAY);
+	glEnableClientState(GL_VERTEX_ARRAY);
+
+
 	//glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	//glEnableClientState(GL_EDGE_FLAG_ARRAY);
 #endif

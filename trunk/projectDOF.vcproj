@@ -205,19 +205,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\TAngles.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\TColorRGB.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\TImageHandler.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\TLight.cpp"
 				>
 			</File>
 			<File
@@ -234,10 +222,6 @@
 			</File>
 			<File
 				RelativePath=".\src\TTriangle.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\TVector3.cpp"
 				>
 			</File>
 		</Filter>
@@ -312,10 +296,6 @@
 			</File>
 			<File
 				RelativePath=".\inc\TImageHandler.h"
-				>
-			</File>
-			<File
-				RelativePath=".\inc\TLight.h"
 				>
 			</File>
 			<File

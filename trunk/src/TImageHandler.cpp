@@ -429,12 +429,11 @@ int TImageHandler::LoadBMP( char* aFileName, int aCurrentTextureNum )
 	if (NULL == aFileName ) return (-1);
 
 
-//#ifdef _WIN32
-//	if(( NULL == fopen_s( &bmpFile, aFileName, "rb"))) 
-//#else
-
+#ifdef _WIN32
+	if(( NULL == fopen_s( &bmpFile, aFileName, "rb"))) 
+#else
 	if((bmpFile = fopen(aFileName, "rb"))==NULL) 
-//#endif
+#endif
 		{
         //MessageBox(NULL,"Texture not found","Spacesim",MB_OK | MB_ICONERROR);
 		cout << "Texture not found.\n";

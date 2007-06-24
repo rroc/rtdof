@@ -28,7 +28,6 @@
 #include "TAngles.h"
 #include "TMatrix4.h"
 #include "TColorRGB.h"
-#include "TLight.h"
 
 #include "CMesh.h"
 
@@ -59,7 +58,7 @@ class CMyRenderer
 		enum TRenderType {
 			ERenderVertices=0,
 			ERenderWire,
-			ERenderFaceShadedCulled, 
+			ERenderFaceShadedCulled,
 
 			//last value
 			EEmpty
@@ -134,14 +133,14 @@ class CMyRenderer
 		* Get a width of the screen.
 		* @return iScreenWidth
 		*/
-		int Width() const 
+		int Width() const
 			{ return iScreenWidth; };
 
 		/**
 		* Get a height of the screen.
 		* @return iScreenHeight
 		*/
-		int Height() const 
+		int Height() const
 			{ return iScreenHeight; };
 
 		/**
@@ -149,7 +148,7 @@ class CMyRenderer
 		* @return iScale
 		* @see SetScale
 		*/
-		float Scale() const 
+		float Scale() const
 			{ return iScale; };
 
 		/**
@@ -157,21 +156,21 @@ class CMyRenderer
 		* @return iAxisDrawn
 		* @see SetDrawAxis
 		*/
-		bool AxisDrawn() const 
+		bool AxisDrawn() const
 			{ return iAxisDrawn; };
 
 		/**
 		* Get true if normals are drawn.
 		* @return iFaceNormalsDrawn
 		*/
-		bool NormalsDrawn() const 
+		bool NormalsDrawn() const
 			{ return iNormalsDrawn; };
 
 		/**
 		* Get point of rotation.
 		* @return point of rotation
 		*/
-		TVector3 PointOfRotation() const 
+		TVector3 PointOfRotation() const
 			{ return iPointOfRotation; };
 
 		/**
@@ -179,21 +178,21 @@ class CMyRenderer
 		* @see SetAnglesChange
 		* @return iAnglesChange
 		*/
-		TAngles AnglesChange() const 
+		TAngles AnglesChange() const
 			{ return iAnglesChange; };
 
 		/**
 		* Get the angles. This is the current angle of rotation
 		* @return iAnglesChange
 		*/
-		TAngles CurrentAngles() const 
+		TAngles CurrentAngles() const
 			{ return iCurrentAngles; };
 
 		/**
 		* Return the type of rendering.
 		* @return iRenderType
 		*/
-		TRenderType RenderType() const 
+		TRenderType RenderType() const
 			{ return iRenderType; };
 
 		/**
@@ -202,7 +201,7 @@ class CMyRenderer
 		bool TransformInProcess() const
 			{ return iTransformInProcess;}
 
-		TAngles RotAnglesChange() const 
+		TAngles RotAnglesChange() const
 			{ return iRotAnglesChange; };
 
 
@@ -261,14 +260,14 @@ class CMyRenderer
 		void SetCurrentAngles( float aXAngle, float aYAngle, float aZAngle  )
 			{ iCurrentAngles = TAngles(aXAngle, aYAngle, aZAngle);}
 
-		void SetRenderType( const TRenderType& aRenderType) 
+		void SetRenderType( const TRenderType& aRenderType)
 			{iRenderType = aRenderType; };
 
 		void SetRotAngles( const TAngles& aAngles )
 			{iRotAnglesChange=TAngles(aAngles);}
-		
-		
-		
+
+
+
 
 	//PRIVATE METHODS
 	private:
@@ -332,7 +331,7 @@ class CMyRenderer
 		void DrawVertexNormal( TVector3 vx[], TVector3 nv[]) const;
 		//void DrawFaceNormal( const CMesh& aMesh, const int aTriangleIndex ) const;
 
-		void RenderPipeLine( );
+		void RenderObject( );
 
 		//void DrawOnScreen( int aTriangleIndex, bool aVertexNormalsUsed, bool aVisibility );
 		void DrawOnScreen( TVector3 aVx[], TVector3 aNv[], TColorRGB aTriangleColor );
@@ -340,7 +339,7 @@ class CMyRenderer
 		void CMyRenderer::ModifyPixels();
 
 		TColorRGB CalculateALight( TVector3 aNormalVector, TColorRGB aObjectColor );
-		
+
 		void CheckFrameBufferStatus();
 		bool VerifyShaderCompilation( int aShaderId );
 		bool VerifyShaderProgram( int aShaderProgramId );
@@ -361,18 +360,17 @@ class CMyRenderer
 		float* iPixelBuffer1;
 		float* iPixelBuffer2;
 		float* iDepthBuffer;
-		
+
 		GLuint iColorMapId[KNumberOfColorMaps];
 		GLuint iFrameBufferId;
 		GLuint iDepthMapId;
-		
+
 
 		//OBJECT SPECIFICs
 		CSceneNode* iScene;
 		vector<CSceneRotation*> iSceneRotations; //current transformation matrix
 
 		CSceneRotation* iRootRot;
-		vector<TLight*> iLights;
 
 		TMatrix4 iPerspectiveMatrix;
 		TMatrix4 iViewportMatrix;
@@ -382,7 +380,7 @@ class CMyRenderer
 		vector<CMesh*> iMeshList; ///< CMesh object
 		int	iOldMeshIndex;
 		CMesh*  iSceneMesh; ///< CMesh object
-		
+
 		TAngles iRotAnglesChange;
 
 		//WORLDMAP
