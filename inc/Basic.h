@@ -36,25 +36,6 @@
 //#undef _WIN32
 //#include <GL/glprocs.h> //Header for the GL extensions in OGL 2.0 style
 //#define _WIN32
-
-//extern PFNGLISRENDERBUFFEREXTPROC glIsRenderbufferEXT = NULL;
-//extern PFNGLBINDRENDERBUFFEREXTPROC glBindRenderbufferEXT = NULL;
-//extern PFNGLDELETERENDERBUFFERSEXTPROC glDeleteRenderbuffersEXT = NULL;
-//extern PFNGLGENRENDERBUFFERSEXTPROC glGenRenderbuffersEXT = NULL;
-//extern PFNGLRENDERBUFFERSTORAGEEXTPROC glRenderbufferStorageEXT = NULL;
-//extern PFNGLGETRENDERBUFFERPARAMETERIVEXTPROC glGetRenderbufferParameterivEXT = NULL;
-//extern PFNGLISFRAMEBUFFEREXTPROC glIsFramebufferEXT = NULL;
-//extern PFNGLBINDFRAMEBUFFEREXTPROC glBindFramebufferEXT = NULL;
-//extern PFNGLDELETEFRAMEBUFFERSEXTPROC glDeleteFramebuffersEXT = NULL;
-//extern PFNGLGENFRAMEBUFFERSEXTPROC glGenFramebuffersEXT = NULL;
-//extern PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC glCheckFramebufferStatusEXT = NULL;
-//extern PFNGLFRAMEBUFFERTEXTURE1DEXTPROC glFramebufferTexture1DEXT = NULL;
-//extern PFNGLFRAMEBUFFERTEXTURE2DEXTPROC glFramebufferTexture2DEXT = NULL;
-//extern PFNGLFRAMEBUFFERTEXTURE3DEXTPROC glFramebufferTexture3DEXT = NULL;
-//extern PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC glFramebufferRenderbufferEXT = NULL;
-//extern PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVEXTPROC glGetFramebufferAttachmentParameterivEXT = NULL;
-//extern PFNGLGENERATEMIPMAPEXTPROC glGenerateMipmapEXT = NULL;
-
 #endif
 #include "myLab.h"		//Global defines
 

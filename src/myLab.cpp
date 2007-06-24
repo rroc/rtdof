@@ -7,7 +7,8 @@
 //CONSTANTS
 const int KWindowPositionX = 50;
 const int KWindowPositionY = 50;
-
+const int KWindowWidth = 800;
+const int KWindowHeight = 600;
 
 void initLights()
 	{
@@ -64,12 +65,12 @@ glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
 
 	}
 
-void initOpenGL( CMyRenderer* renderer )
+void initOpenGL()
 	{
 	//Init Window
 	glutInitDisplayMode( GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition( KWindowPositionX, KWindowPositionY );
-	glutInitWindowSize( renderer->Width(), renderer->Height() ); //800,600);
+	glutInitWindowSize( KWindowWidth, KWindowHeight ); //800,600);
 	glutCreateWindow("DOFinite Engine 0.1");
 
 	initLights();
@@ -81,7 +82,7 @@ void initOpenGL( CMyRenderer* renderer )
 
 	glutDisplayFunc(  RenderSceneWithRenderer );
 	glutIdleFunc(     RenderSceneWithRenderer );
-	//glutReshapeFunc(reshape );
+	//glutReshapeFunc(  ResizeSceneWithRenderer );
 
 	//Init view
 	glClearColor (0.0, 0.1, 0.0, 0.0);
@@ -121,17 +122,25 @@ void initOpenGL( CMyRenderer* renderer )
 */
 int main(int argc, char **argv)
 	{
+	glutInit( &argc, argv );
+
+	//Initialize GL using GLUT functions
+	initOpenGL();
+
+#ifdef _WIN32
+    GLenum err = glewInit();
+#endif
+
+
 	//Init renderer
-	CMyRenderer* renderer = new CMyRenderer( 800, 600);
+	CMyRenderer* renderer = new CMyRenderer( KWindowWidth, KWindowHeight );
 	CMyUiEvents* ui = new CMyUiEvents( renderer );
 
 	//This static data enables to pass renderer and ui functions to OpenGL
 	CMyRenderer::iCurrentRenderer = renderer;
 	CMyUiEvents::iCurrentUi = ui;
 
-	//Initialize GL using GLUT
-	glutInit(&argc, argv);
-	initOpenGL( renderer );
+
 
 	renderer->CreateScene();
 
