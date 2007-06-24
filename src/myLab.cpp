@@ -85,7 +85,7 @@ void initOpenGL()
 	//glutReshapeFunc(  ResizeSceneWithRenderer );
 
 	//Init view
-	glClearColor (0.0, 0.1, 0.0, 0.0);
+	glClearColor (0.7, 0.7, 0.7, 0.7);
 
 	// Projection transformation
     glMatrixMode(GL_PROJECTION); // Specifies which matrix stack is the target for matrix operations

@@ -215,6 +215,7 @@ bool TMeshLoader::Load3DS( CMesh& aMesh, char* aFileName, float aScale )
 				dataFile.seekg( dataLength - (dataIdSize+dataLengthSize), ios::cur );
 			}
 		}
+	dataFile.close();
 	std::cout << "Read OK." << endl << endl;
 	return true;
 	}

@@ -4,7 +4,42 @@
 #include "Basic.h"
 
 //#include <png.h>
+typedef unsigned long       DWORD;
+typedef int                 BOOL;
+typedef unsigned char       BYTE;
+typedef unsigned short      WORD;
+typedef char CHAR;
+typedef short SHORT;
+typedef long LONG;
 
+
+typedef struct tagBITMAPFILEHEADER {
+        WORD    bfType;
+        DWORD   bfSize;
+        WORD    bfReserved1;
+        WORD    bfReserved2;
+        DWORD   bfOffBits;
+} BITMAPFILEHEADER;
+typedef struct tagBITMAPINFOHEADER{
+        DWORD      biSize;
+        LONG       biWidth;
+        LONG       biHeight;
+        WORD       biPlanes;
+        WORD       biBitCount;
+        DWORD      biCompression;
+        DWORD      biSizeImage;
+        LONG       biXPelsPerMeter;
+        LONG       biYPelsPerMeter;
+        DWORD      biClrUsed;
+        DWORD      biClrImportant;
+} BITMAPINFOHEADER;
+
+typedef struct tagRGBTRIPLE {
+        BYTE    rgbtBlue;
+        BYTE    rgbtGreen;
+        BYTE    rgbtRed;
+} RGBTRIPLE;
+/*
 typedef struct tagBITMAPFILEHEADER 
 	{
     unsigned short  bfType;
@@ -13,7 +48,6 @@ typedef struct tagBITMAPFILEHEADER
     unsigned short  bfReserved2;
     unsigned long   bfOffBits;
 	} WBITMAPFILEHEADER;
-
 typedef struct tagBITMAPINFOHEADER
 	{
     unsigned long   biSize;
@@ -28,14 +62,13 @@ typedef struct tagBITMAPINFOHEADER
     unsigned long   biClrUsed;
     unsigned long   biClrImportant;
 	} WBITMAPINFOHEADER;
-
 typedef struct tagRGBTRIPLE 
 	{
     unsigned char    rgbtBlue;
     unsigned char    rgbtGreen;
     unsigned char    rgbtRed;
 	} WRGBTRIPLE;
-
+*/
 class TImageHandler
 	{
 	public:

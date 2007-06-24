@@ -6,6 +6,8 @@
 
 #include "TAngles.h"
 #include "TMeshLoader.h"
+//#include "TImageHandler.h"
+//#include "ImageIO.h"
 
 #include "TTextFileHandler.h"
 
@@ -21,6 +23,7 @@ const int KScreenHeight= 272; ///< Default screen height ( = PSP's screen height
 const int KWindowSystemFrameBuffer = 0; // Window System Framebuffer ID
 const int KTextureBorder = 0; // texture border
 const int KTextureLevel = 0; // texture level resolution
+
 
 //VIEW FRUSTUM
 const float KZNear	= 10.0f;
@@ -121,7 +124,14 @@ CMyRenderer::CMyRenderer( const int aWidth, const int aHeight )
 	SetShaders();
 	}
 
+
+
+
+
+
+//
 //DESTRUCTOR releases the used heap
+//
 CMyRenderer::~CMyRenderer()
 	{
 	if(iLights.size()>0)
@@ -149,93 +159,105 @@ CMyRenderer::~CMyRenderer()
 		delete [] iDepthBuffer;
 	
 	// remove the two textures and the framebuffer object
-	glDeleteTextures(2, iTextureID);
-	glDeleteFramebuffersEXT(1, iFrameBufferID);
+	glDeleteTextures(KNumberOfColorMaps, iColorMapId);
+	glDeleteTextures(1, &iDepthMapId);
+	glDeleteFramebuffersEXT(1, &iFrameBufferId);
 
 #ifdef USE_SIN_TABLE
 	delete CTrigTable::iTrigTable;
 #endif
 	}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void CMyRenderer::InitForFrameBufferObject()
 	{
 	// get two texture identifiers that have not yet been used
-	glGenTextures ( 2, iTextureID );
-
-	
-	//create the color texture
-	//------------------------
-	glBindTexture( GL_TEXTURE_2D, iTextureID[0] );
-	
-	//// set texture parameters
-	//// filtering: see page 401 red book
-	//!NOTE: linear stretching cannot be used with mipmaps
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-	//glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-	
-	//// wrapping: see page 417 red book
-	//// texture(s,t,r,q) equal to vertex(x, y, z, w)
-	//// so in this case we're setting the wrap-parameters for the x direction
-	//// and the y direction
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-  
-	glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
-	
-	// set up the Texture size, type, format,...
-	// similar to glReadPixels and glDrawPixels
-	// note: We're not supplying any texture image data since we're creating our own.
-	// Hence, the NULL-parameter at the end of this function
-	
-	// NOTE TEXTURE HAS TO BE m^2!!
-	// todo: fix so ratio is ok
-	glTexImage2D( GL_TEXTURE_2D, KTextureLevel, GL_RGBA8, 512, 512, KTextureBorder, GL_RGBA, GL_FLOAT, NULL );
-	
-	
-	//create the depth texture
-	//------------------------
-	glBindTexture( GL_TEXTURE_2D, iTextureID[1] );
-
-	// set texture parameters
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );	
-	glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );	
-
-  // set up the Texture size, type, format,...
-	glTexImage2D( GL_TEXTURE_2D, KTextureLevel, GL_DEPTH_COMPONENT, 512, 512, KTextureBorder, GL_DEPTH_COMPONENT, GL_FLOAT, NULL );
-		
+	glGenTextures( KNumberOfColorMaps, iColorMapId );
+	glGenTextures( 1, &iDepthMapId );
 
 	//CREATE FRAMEBUFFER OBJECT (and attach the textures)
 	//---------------------------------------------------
 	// generate, create & assign the framebuffer object
-	glGenFramebuffersEXT ( 1, iFrameBufferID );
-	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, iFrameBufferID[0] );
+	glGenFramebuffersEXT ( 1, &iFrameBufferId );
+	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, iFrameBufferId );
 
-	//// attach the two textures to the framebuffer
-	//// (one is a color attachment, one is depth attachment)
-	glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, iTextureID[0], KTextureLevel );
-	glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT,  GL_TEXTURE_2D, iTextureID[1], KTextureLevel );	
+
+	//create the depth texture
+	//------------------------
+	glEnable( GL_TEXTURE_2D );
+
+//	glActiveTexture( GL_TEXTURE0 );
+	glBindTexture( GL_TEXTURE_2D, iDepthMapId );
+	// set texture parameters
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+
+	glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );	
+  // set up the Texture size, type, format,...
+	glTexImage2D( GL_TEXTURE_2D, KTextureLevel, GL_DEPTH_COMPONENT, 512, 512, KTextureBorder, GL_DEPTH_COMPONENT, GL_FLOAT, NULL );
 	
+	// attach the depth to the framebuffer
+	glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, iDepthMapId, KTextureLevel );
 
 
-	//Enable multi textures
-	//---------------------
-	glActiveTexture( GL_TEXTURE0 );
-	glEnable( GL_TEXTURE_2D );
-	glBindTexture( GL_TEXTURE_2D, iTextureID[0] );
 
-	glActiveTexture( GL_TEXTURE1 );
-	glEnable( GL_TEXTURE_2D );
-	glBindTexture( GL_TEXTURE_2D, iTextureID[1] );
+	//create the color textures
+	//-------------------------
 
+	//create colortextures (the first one is reserved for the depth)
+	for(int i=0; i< KNumberOfColorMaps; i++) 
+		{
+		//ACTIVATE A NEW TEXTURE UNIT:
+//		glActiveTexture( GL_TEXTURE0+i );
+//		glEnable( GL_TEXTURE_2D );
+
+		//SET TEXTURE PARAMETERS
+		glBindTexture( GL_TEXTURE_2D, iColorMapId[i] );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	//	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+	//	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+		glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
+		glTexImage2D( GL_TEXTURE_2D, KTextureLevel, GL_RGBA8, 512, 512, KTextureBorder, GL_RGBA, GL_FLOAT, NULL );
+
+		// attach texture to framebuffer
+		glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT+i, GL_TEXTURE_2D, iColorMapId[i], KTextureLevel );
+
+		////Enable multi textures
+		////---------------------
+		//glActiveTexture( GL_TEXTURE0+i );
+		//glEnable( GL_TEXTURE_2D );
+		//glBindTexture( GL_TEXTURE_2D, iColorMapId[i] );
+		}
+
+//	glActiveTexture( GL_TEXTURE1 );
+
+//	glEnable( GL_TEXTURE_2D );
+//	glBindTexture( GL_TEXTURE_2D, iColorMapId[1] );
 
 
 	//// assign the window system framebuffer again
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, KWindowSystemFrameBuffer);
-	glBindTexture( GL_TEXTURE_2D, 0 );
+	//glBindTexture( GL_TEXTURE_2D, 0 );
 	CheckFrameBufferStatus();
 	}
 
@@ -355,7 +377,7 @@ void CMyRenderer::DrawText() const
 	{
 	//float x = //-0.85;
 	//float y = //-0.95;
-	float x = 5.0f, y= iScreenHeight-20.0f;
+	float x = 150.0f, y= iScreenHeight-200.0f;
 
 	glPushMatrix();
 
@@ -561,30 +583,43 @@ void CMyRenderer::RenderScene()
 
 	//PREPARE THE FRAMEBUFFER OBJECT
 	glViewport( 0,0, iFBOTextureWidth, iFBOTextureHeight );
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, iFrameBufferID[0]);	
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, iFrameBufferId);
 ////	glClearColor (0.0, 1.0, 0.0, 0.0);
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-
+	glDrawBuffer( GL_COLOR_ATTACHMENT0_EXT );
+	
 	//DRAW THE WHOLE SCENE (ALL OBJECTS)
 	glUseProgram(iShaderProgramId);
 	DrawSceneNode( iScene );
-	glUseProgram(0);
 
 	//glGenerateMipmapEXT( GL_TEXTURE_2D );
 
 	//glColor3f(1,0,0);
 	//glutWireSphere(1,20,16);
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, KWindowSystemFrameBuffer);
+
+//-----------------------------------------
+//	for(int i=1; i<KNumberOfTextures; i++)
+//		{
+//		glUseProgram(iShaderProgramId);             // enable shaders
+//		glDrawBuffer( GL_COLOR_ATTACHMENT0_EXT+i ); // target = 
+//		RenderSceneOnQuad( i, 0 );                // draw using textures i
+//		}
+//-----------------------------------------
+	glUseProgram(0);
+
+	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, KWindowSystemFrameBuffer );
 	glViewport( 0,0, iScreenWidth, iScreenHeight );
 
 	//CLEAR SCREEN AMD DEPTH BUFFER
-	glClearColor (0.0, 0.0, 0.0, 0.0);
+	//glClearColor (0.0, 0.0, 0.0, 0.0);
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	
 
 	//Render a quad with the pre-rendered scene as a texture
-	RenderSceneOnQuad();
+	RenderSceneOnQuad( 0, -1 );
+
+
 
 	glFlush(); // Force the execution of OpenGL commands so far
 
@@ -612,10 +647,10 @@ void CMyRenderer::RenderScene()
 
 
 
-void CMyRenderer::RenderSceneOnQuad()
+void CMyRenderer::RenderSceneOnQuad(int aTextureId1, int aTextureId2 )
 	{
-	int iQuadWidth= 512;
-	int iQuadHeight = 512;
+	const int iQuadWidth= 512;
+	const int iQuadHeight = 512;
 	
 	glMatrixMode( GL_PROJECTION );
 	glLoadIdentity();
@@ -627,25 +662,14 @@ void CMyRenderer::RenderSceneOnQuad()
 	glDisable( GL_CULL_FACE );
 	glDisable( GL_DEPTH_TEST );
 
-	glBindTexture( GL_TEXTURE_2D, iTextureID[0] );	
-	glEnable( GL_TEXTURE_2D );
-	glTexEnvf( GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, iScale );
-//	glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
 
-	//glBegin(GL_QUADS);
-	//	glTexCoord2i( 0, 0 );	
-	//	glVertex2i( 0, 0 );
-	//	
-	//	glTexCoord2i( 0, 1 );
-	//	glVertex2i( iScreenWidth, 0 );
-	//	
-	//	glTexCoord2i( 1, 1 );
-	//	glVertex2i( iScreenWidth, iScreenHeight );
-	//	
-	//	glTexCoord2i( 1, 0 );
-	//	glVertex2i( 0, iScreenHeight );
-	//glEnd();
+	glActiveTexture( GL_TEXTURE0 );
+	glBindTexture( GL_TEXTURE_2D, iColorMapId[aTextureId1] );
 
+	glActiveTexture( GL_TEXTURE1 );
+	glBindTexture( GL_TEXTURE_2D, iColorMapId[aTextureId2] );
+
+	//RENDER MULTITEXTURE ON QUAD
 	glBegin(GL_QUADS);
 		glMultiTexCoord2f( GL_TEXTURE0, 0,0 );
 		glMultiTexCoord2f( GL_TEXTURE1, 0,0 );
@@ -665,7 +689,7 @@ void CMyRenderer::RenderSceneOnQuad()
 	glEnd();
 
 	glFlush();	
-	glDisable( GL_TEXTURE_2D );
+//	glDisable( GL_TEXTURE_2D );
 	
 	glEnable( GL_CULL_FACE );
 	glEnable( GL_DEPTH_TEST );
@@ -1090,7 +1114,6 @@ void CMyRenderer::SetShaders()
 	status &= VerifyShaderCompilation( fragmentShaderId1 );
 	status &= VerifyShaderProgram( iShaderProgramId );
 	if ( !status ){ exit(-1); }
-
 	}
 
 void CMyRenderer::CheckFrameBufferStatus()
