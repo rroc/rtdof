@@ -33,12 +33,14 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
+				PreprocessorDefinitions="_DEBUG"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="inc\"
-				DebugInformationFormat="4"
+				WarningLevel="3"
+				DebugInformationFormat="1"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -51,10 +53,12 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="glew32.lib"
+				AdditionalDependencies="glut32.lib glew32.lib glu32.lib opengl32.lib kernel32.lib"
 				OutputFile="bin\w32\$(ProjectName)_debug.exe"
 				GenerateDebugInformation="true"
+				AssemblyDebug="1"
 				GenerateMapFile="true"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -203,6 +207,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\textfile.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\TImageHandler.cpp"
 				>
 			</File>
@@ -293,6 +301,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\inc\textfile.h"
+				>
+			</File>
+			<File
 				RelativePath=".\inc\TImageHandler.h"
 				>
 			</File>
@@ -322,6 +334,22 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+		</Filter>
+		<Filter
+			Name="Shader"
+			>
+			<File
+				RelativePath=".\shader\toon.frag"
+				>
+			</File>
+			<File
+				RelativePath=".\shader\toon.vert"
+				>
+			</File>
+			<File
+				RelativePath=".\shader\toon2.frag"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

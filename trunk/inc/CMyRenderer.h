@@ -264,10 +264,9 @@ class CMyRenderer
 
 	//PRIVATE METHODS
 	private:
-		void InitForFrameBufferObject();
+		void SetShaders();
 
-		//
-		void FrameBufferObjectExtW32();
+		void InitForFrameBufferObject();
 
 		//BASIC DRAWING FUNCTIONS
 
@@ -351,6 +350,11 @@ class CMyRenderer
 
 	//PRIVATE DATA
 	private:
+		int iShaderProgramId;
+
+		int iFBOTextureWidth;
+		int iFBOTextureHeight;
+
 		float* iPixelBuffer1;
 		float* iPixelBuffer2;
 		float* iDepthBuffer;
