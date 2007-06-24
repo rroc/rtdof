@@ -45,12 +45,17 @@ void initLights()
 GLfloat mat_diffuse[]= { 0.8f, 0.8f, 0.8f, 0.8f };
 GLfloat mat_specular[] = { 0.5, 0.5, 0.5, 0.5 };
 GLfloat mat_shininess[] = { 50.0 };
-GLfloat light_position[] = { 1.0, 1.0, 1.0, 0.0 };
 glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
 glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
 glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
 
+GLfloat light_position[] = { 0.0, 0.0, 1.0, 0.0 };
+
+GLfloat light_ambient[]= { 0.5f, 0.5f, 0.5f, 0.5f };
+GLfloat light_diffuse[]= { 1.0f, 1.0f, 1.0f, 1.0f };
 glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse); 
+glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
 glEnable(GL_LIGHTING);
 glEnable(GL_LIGHT0);
 glEnable(GL_DEPTH_TEST);

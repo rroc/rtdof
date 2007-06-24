@@ -131,7 +131,7 @@ bool TMeshLoader::Load3DS( CMesh& aMesh, char* aFileName )
 					dataFile.read( reinterpret_cast<char *>(&x), sizeof (float) );
 					dataFile.read( reinterpret_cast<char *>(&y), sizeof (float) );
 					dataFile.read( reinterpret_cast<char *>(&z), sizeof (float) );
-					vertex.set( x/100, y/100, z/100 );
+					vertex.set( x/30, y/30, z/30 );
 					aMesh.iVertices.push_back(vertex);
 					}
 				}
