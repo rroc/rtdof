@@ -17,6 +17,7 @@ class TColorRGB
 		// Constructors
 		TColorRGB();
 		TColorRGB(float _r , float _g, float _b);
+		TColorRGB(float _r , float _g, float _b, float _a);
 
 		// Init to gray shade
 		TColorRGB(float _g);
@@ -27,11 +28,13 @@ class TColorRGB
 
 		// methods
 		void set( float _r, float _g, float _b );
+		void set( float _r, float _g, float _b, float _a );
 		void set( const TColorRGB& aColor );
 
 		float getR() const;
 		float getG() const;
 		float getB() const;
+		float getA() const;
 
 		TColorRGB randomColors();
 		TColorRGB randomColors(int aSeed );
@@ -57,7 +60,7 @@ class TColorRGB
 		/** \brief Private float colors
 		*
 		*/
-		float r, g, b;
+		float r, g, b, a;
 	};
 
 #endif
