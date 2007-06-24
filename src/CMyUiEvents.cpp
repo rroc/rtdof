@@ -10,6 +10,7 @@ const float KAngleChangeAmount = 0.05f;
 #endif
 
 const float KScaleChangeAmount = 1.0f;
+const float KFocusChangeAmount = 0.0005f;
 
 //INIT STATIC DATA
 CMyUiEvents* CMyUiEvents::iCurrentUi = 0;
@@ -189,22 +190,29 @@ void CMyUiEvents::ProcessMouseEvent( int button, int state, int x, int y )
 		{
 		//Set point of rotation
 		case GLUT_LEFT_BUTTON:
-			if(GLUT_UP == state)
+			if(GLUT_DOWN == state)
 				{
-				//Wait until change is ok
-				//while(iRenderer->TransformInProcess());
-				//TVector3 p = iRenderer->PointOfRotation();
-				//iRenderer->SetPointOfRotation( x, y, p.Z() );
+				iMouseButtonDown = EMouseDownLeft;
+				iMouseY = y;
+				}
+			else
+				{
+				iMouseButtonDown = EMouseUp;
 				}
 			break;
 		//Set mesh position
 		case GLUT_RIGHT_BUTTON:
 			if(GLUT_UP == state)
 				{
+				iMouseButtonDown = EMouseDownRight;
 				//Wait until change is ok
 				//while(iRenderer->TransformInProcess());
 				//TVector3 mp = iRenderer->MeshPosition();
 				//iRenderer->SetMeshPosition( x, y, mp.Z() );
+				}
+			else
+				{
+				iMouseButtonDown = EMouseUp;
 				}
 			break;
 		default:
@@ -212,6 +220,20 @@ void CMyUiEvents::ProcessMouseEvent( int button, int state, int x, int y )
 		}
 
 	}
+
+void CMyUiEvents::ProcessMouseMotionEvent( int x, int y )
+	{
+	if( EMouseDownLeft == iMouseButtonDown)
+			{
+			iRenderer->ChangeFocus( (iMouseY-y) * KFocusChangeAmount );
+			iMouseY = y;
+			}
+	}
+
+
+
+
+
 
 //EXTERNAL FUNCTIONS TO USE GLUT CALLBACKS
 void ProcessNormalKeysWithUi( unsigned char key, int x, int y )
@@ -229,5 +251,11 @@ void ProcessMouseEventWithUi( int button, int state, int x, int y)
 	{
 	if (CMyUiEvents::iCurrentUi != 0 )
 		CMyUiEvents::iCurrentUi->ProcessMouseEvent( button, state, x, y );
+	}
+
+void ProcessMouseMotionEventWithUi( int x, int y )
+	{
+	if (CMyUiEvents::iCurrentUi != 0 )
+		CMyUiEvents::iCurrentUi->ProcessMouseMotionEvent( x, y );
 	}
 

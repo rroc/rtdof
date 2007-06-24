@@ -356,10 +356,6 @@
 				RelativePath=".\shader\transform.vert"
 				>
 			</File>
-			<File
-				RelativePath=".\shader\transformfinal.vert"
-				>
-			</File>
 		</Filter>
 	</Files>
 	<Globals>

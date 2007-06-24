@@ -3,10 +3,10 @@
 
 #include "Basic.h"
 #include "TVector3.h"
-
-#ifdef USE_SIN_TABLE
-#include "CTrigTable.h"
-#endif
+//
+//#ifdef USE_SIN_TABLE
+//#include "CTrigTable.h"
+//#endif
 
 /** \brief Class that defines an 4x4 matrix
 *

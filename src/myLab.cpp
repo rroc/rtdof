@@ -71,7 +71,7 @@ void initOpenGL()
 	glutInitDisplayMode( GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition( KWindowPositionX, KWindowPositionY );
 	glutInitWindowSize( KWindowWidth, KWindowHeight ); //800,600);
-	glutCreateWindow("DOFinite Engine 0.1");
+	glutCreateWindow("DOFinite Engine");
 
 	initLights();
 
@@ -79,6 +79,7 @@ void initOpenGL()
 	glutKeyboardFunc( ProcessNormalKeysWithUi );
 	glutSpecialFunc(  ProcessCursorKeysWithUi );
 	glutMouseFunc(    ProcessMouseEventWithUi );
+	glutMotionFunc(   ProcessMouseMotionEventWithUi );
 
 	glutDisplayFunc(  RenderSceneWithRenderer );
 	glutIdleFunc(     RenderSceneWithRenderer );
@@ -110,7 +111,7 @@ void initOpenGL()
 	glLoadIdentity ();
 
 #ifdef USE_VERTEX_ARRAYS
-	glEnableClientState(GL_COLOR_ARRAY);
+	//glEnableClientState(GL_COLOR_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_VERTEX_ARRAY);
 
