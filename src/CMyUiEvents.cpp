@@ -40,8 +40,6 @@ void CMyUiEvents::ProcessNormalKeys(unsigned char key, int x, int y)
 			break;
 		case ',':
 		case ';':
-			//Wait until change is ok
-			while(iRenderer->TransformInProcess());
 			iRenderer->SetScale( iRenderer->Scale() + KScaleChangeAmount );
 			break;
 
@@ -78,9 +76,15 @@ void CMyUiEvents::ProcessNormalKeys(unsigned char key, int x, int y)
 		//SCALE MESH
 		case '.':
 		case ':':
-			//Wait until change is ok
-			while(iRenderer->TransformInProcess());
 			iRenderer->SetScale( iRenderer->Scale()-KScaleChangeAmount );
+			break;
+
+		//CHANGE MESH
+		case 'j':
+			iRenderer->iMeshIndex++;
+			break;
+		case 'k':
+			iRenderer->iMeshIndex--;
 			break;
 
 		//MODIFY MESH X

@@ -34,6 +34,7 @@
 
 #include "CSceneNode.h"
 #include "CSceneRotation.h"
+#include "CSceneMesh.h"
 #include "CSceneTranslation.h"
 
 #include "CTitanic.h"
@@ -256,12 +257,18 @@ class CMyRenderer
 
 		TAngles RotAnglesChange() const { return iRotAnglesChange; };
 		void SetRotAngles( const TAngles& aAngles ){iRotAnglesChange=TAngles(aAngles);}
+		void RenderSceneOnQuad(void);
 
 		void SimulateDOF();
 		void ApplyFilter(int aCocDiameter, int aX, int aY );
 
 	//PRIVATE METHODS
 	private:
+		void InitForFrameBufferObject();
+
+		//
+		void FrameBufferObjectExtW32();
+
 		//BASIC DRAWING FUNCTIONS
 
 		void DrawSceneNode( CSceneNode* aNode );
@@ -278,7 +285,7 @@ class CMyRenderer
 		void DrawTriangle( const TVector3& v1, const TVector3& v2, const TVector3& v3, float r, float g, float b ) const;
 		void DrawTriangle( const TVector3& v1, const TVector3& v2, const TVector3& v3, const TColorRGB& c ) const;
 		void DrawTriangle( const TVector3& v1, const TVector3& v2, const TVector3& v3, const TColorRGB& c1, const TColorRGB& c2, const TColorRGB& c3 ) const;
-		void DrawTriangle(TVector3 aVx[], TVector3 aNv[], TColorRGB aCol[]) const;
+		void DrawTriangle(TVector3 aVx[], TVector3 aNv[], TColorRGB aCol) const;
 //		void DrawTriangle( CMesh& aMesh, int aTriangleIndex, float r, float g, float b );
 
 		/**
@@ -326,7 +333,7 @@ class CMyRenderer
 		void RenderPipeLine( );
 
 		//void DrawOnScreen( int aTriangleIndex, bool aVertexNormalsUsed, bool aVisibility );
-		void DrawOnScreen( TVector3 aVx[], TVector3 aNv[], TColorRGB aLightColors[], TColorRGB aTriangleColor, bool aVisibility );
+		void DrawOnScreen( TVector3 aVx[], TVector3 aNv[], TColorRGB aTriangleColor );
 
 		void CMyRenderer::ModifyPixels();
 
@@ -340,14 +347,19 @@ class CMyRenderer
 		static CMyRenderer* iCurrentRenderer;
 		int iAmountOfTriangles;
 
+		int	iMeshIndex;
+
 	//PRIVATE DATA
 	private:
 		float* iPixelBuffer1;
 		float* iPixelBuffer2;
 		float* iDepthBuffer;
+		
+		GLuint iTextureID[2];
+		GLuint iFrameBufferID[1];
+		
 
 		//OBJECT SPECIFICs
-//		vector<TMatrix4> iCTM; //current transformation matrix
 		CSceneNode* iScene;
 		vector<CSceneRotation*> iSceneRotations; //current transformation matrix
 
@@ -358,6 +370,11 @@ class CMyRenderer
 		TMatrix4 iViewportMatrix;
 
 		CMesh* iMesh; ///< CMesh object
+
+		vector<CMesh*> iMeshList; ///< CMesh object
+		int	iOldMeshIndex;
+		CMesh*  iSceneMesh; ///< CMesh object
+		
 		TAngles iRotAnglesChange;
 
 		//WORLDMAP

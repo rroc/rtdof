@@ -9,7 +9,7 @@ class TMeshLoader
 	public:
 		TMeshLoader();
 		~TMeshLoader();
-		bool Load3DS( CMesh& aMesh, char* aFileName );
+		bool Load3DS( CMesh& aMesh, char* aFileName, float aScale=1.0f );
 		//bool LoadPLY( CMesh* aMesh, char* aFileName );
 	};
 

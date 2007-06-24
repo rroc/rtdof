@@ -26,11 +26,12 @@
 class CTitanic : public CMesh
 	{
 	public:
-		CTitanic(void);
+		CTitanic();
+		CTitanic(float aScale);
 		~CTitanic(void);
 
 	private:
-		void init();
+		void init(float aScale);
 	};
 
 #endif

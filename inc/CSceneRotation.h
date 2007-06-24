@@ -3,9 +3,8 @@
 
 
 #include "Basic.h"
-#include "TTriangle.h"
 #include "TVector3.h"
-#include "TMatrix4.h"
+#include "TAngles.h"
 #include "CMesh.h"
 
 
@@ -17,24 +16,40 @@ class CSceneRotation : public CSceneNode
 	public:
 		CSceneRotation()
 			: CSceneNode()
-			, iAxis(TVector3(0,0,0))
-			, iAngle(0.0f)
-			{ iNodeType=ERotationNode;iLocalTransform.loadIdentity();};
+			,iAngles()
+			{ 
+			iNodeType=ERotationNode;
+			};
+
+		CSceneRotation( const TAngles& aAngles )
+			: CSceneNode()
+			,iAngles(aAngles)
+			{
+			iNodeType=ERotationNode;
+			};
+
 		CSceneRotation( const TVector3& aAxis, float aAngle )
 			: CSceneNode()
-			, iAxis(aAxis)
-			, iAngle(aAngle)
-			{iNodeType=ERotationNode;/*update();*/};
-		void setAngle(float aAngle){ iAngle=aAngle; /*update();*/ };
-		void setAxis(const TVector3& aAxis){ iAxis=aAxis; iAxis.normalize(); /*update();*/ };
-		void setRotation(const TVector3& aAxis, float aAngle){iAxis=aAxis;iAxis.normalize();iAngle=aAngle;/*update();*/}
-		void Rotate(const TVector3& aAxis, float aAngle){iAxis+=aAxis;iAxis.normalize();iAngle+=aAngle;}
-//	private:
-//		void update(){ iLocalTransform.makeRotateAxisAngle( iAxis, iAngle ); };
-	public:
-		TVector3 iAxis;
-		float    iAngle;
-	};
+			,iAngles(aAxis.iX*aAngle, aAxis.iY*aAngle, aAxis.iZ*aAngle)
+			{
+			iNodeType=ERotationNode;
+			};
 
+		void setAngleX(float aAngle){ iAngles.iRotX=aAngle; };
+		void setAngleY(float aAngle){ iAngles.iRotY=aAngle; };
+		void setAngleZ(float aAngle){ iAngles.iRotZ=aAngle; };
+
+		void SetRotation(const TAngles& aAngles)
+			{
+			iAngles = aAngles;
+			}
+		void Rotate(const TAngles& aAngles)
+			{
+			iAngles += aAngles;
+			}
+
+	public:
+		TAngles iAngles;
+	};
 #endif
 

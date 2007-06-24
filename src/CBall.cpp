@@ -7,9 +7,12 @@
 //INCLUDES
 #include "CBall.h"
 #ifndef USE_DEGREES
-#include "CTrigTable.h"
-#else
+	#include "CTrigTable.h"
+#elif defined USE_SIN_TABLE
+	#define SIN_CHANGE_OCCURRED
 	#undef USE_SIN_TABLE
+#else
+	#include "CTrigTable.h"
 #endif
 
 //CONSTANTS
@@ -179,8 +182,8 @@ void CBall::randomColors()
 	}
 
 //FIX IF WE CHANGED IT!
-#ifdef USE_DEGREES
-	#undef USE_SIN_TABLE
+#ifdef SIN_CHANGE_OCCURRED
+	#define USE_SIN_TABLE
 #endif
 
 

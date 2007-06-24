@@ -3,46 +3,51 @@
 
 CTitanic::CTitanic() : CMesh()
 	{
-	this->init();
+	this->init(1);
+	}
+
+CTitanic::CTitanic(float aScale) : CMesh()
+	{
+	this->init(aScale);
 	}
 
 // **** Deconstructor
-CTitanic::~CTitanic(void)
+CTitanic::~CTitanic()
 	{
 	//Use the base class destructor
 	}
 
 //Define vertices and triangles
-void CTitanic::init()
+void CTitanic::init(float aScale)
 	{
 	this->clearMesh();
 
 	TVector3 v0(-4,2,2);
-	this->iVertices.push_back(v0);
+	this->iVertices.push_back(v0*aScale);
 
 	TVector3 v1(-3,1,0);
-	this->iVertices.push_back(v1);
+	this->iVertices.push_back(v1*aScale);
 
 	TVector3 v2(-3,-1,0);
-	this->iVertices.push_back(v2);
+	this->iVertices.push_back(v2*aScale);
 
 	TVector3 v3(-4,-2,2);
-	this->iVertices.push_back(v3);
+	this->iVertices.push_back(v3*aScale);
 
 	TVector3 v4(3,2,2);
-	this->iVertices.push_back(v4);
+	this->iVertices.push_back(v4*aScale);
 
 	TVector3 v5(3,1,0);
-	this->iVertices.push_back(v5);
+	this->iVertices.push_back(v5*aScale);
 
 	TVector3 v6(3,-1,0);
-	this->iVertices.push_back(v6);
+	this->iVertices.push_back(v6*aScale);
 
 	TVector3 v7(3,-2,2);
-	this->iVertices.push_back(v7);
+	this->iVertices.push_back(v7*aScale);
 
 	TVector3 v8(5,0,2);
-	this->iVertices.push_back(v8);
+	this->iVertices.push_back(v8*aScale);
 
 /*
 	TTriangle t0(0,2,1);
