@@ -31,13 +31,10 @@
 #include <GLUT/glut.h>		// Header File For The GLUT Library for Mac os x
 
 #elif defined _WIN32
-
 #include <GL/glew.h>
 #include <GL/glut.h>    // Header File For The GLUT Library
-//#undef _WIN32
-//#include <GL/glprocs.h> //Header for the GL extensions in OGL 2.0 style
-//#define _WIN32
 #endif
+
 #include "myLab.h"		//Global defines
 
 /* Elementary 3D graphic programming.
