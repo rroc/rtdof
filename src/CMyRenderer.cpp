@@ -281,8 +281,8 @@ void CMyRenderer::CreateScene()
 		}
 
 
-	//CALCULATE NORMALS FOR ALL
-	//-------------------------
+	//CALCULATE NORMALS AND COLOR FOR ALL
+	//------------------------------------
 	for(int i=0, j=iMeshList.size(); i<j; i++)
 		{
 		iMeshList.at(i)->calculateVertexNormals();
@@ -372,7 +372,7 @@ void CMyRenderer::FramesPerSec()
 		//sprintf_s(iFpsCountString,"FPS:%4.2f", iFrame*1000.0/( iCurrentTime - iPreviousTime ));
 			sprintf_s  (iFpsCountString,"FPS:%4.2f - POLYCOUNT: %d - FOCUS: %4.2f - RANGE: %4.2f", iFrame*1000.0/( iCurrentTime - iPreviousTime ), iPolyCount, iFocus, iFocusArea);
 #else
-		sprintf(iFpsCountString,"FPS:%4.2f Polycount: %d", iFrame*1000.0/( iCurrentTime - iPreviousTime ), iPolyCount);
+		sprintf(iFpsCountString,"FPS:%4.2f - POLYCOUNT: %d - FOCUS: %4.2f - RANGE: %4.2f", iFrame*1000.0/( iCurrentTime - iPreviousTime ), iPolyCount, iFocus, iFocusArea);
 #endif
 		iPreviousTime = iCurrentTime;
 		iFrame = 0;
@@ -423,8 +423,15 @@ void CMyRenderer::DrawText() const
 
 void CMyRenderer::DrawTriangle(TVector3 aVx[], TVector3 aNv[], TColorRGB aCol) const
 	{
+	//glDisable( GL_TEXTURE_2D );
+
 	//FACE COLORING
+#ifdef USE_PIXEL_READ_DOF	
+	GLfloat mat_diffuse[] = { aCol.iR, aCol.iG, aCol.iB };
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
+#else
 	glColor3f( aCol.iR, aCol.iG, aCol.iB);
+#endif
 
 	glBegin(GL_TRIANGLES);
 		glNormal3f(aNv[0].iX, aNv[0].iY, aNv[0].iZ);
@@ -436,6 +443,8 @@ void CMyRenderer::DrawTriangle(TVector3 aVx[], TVector3 aNv[], TColorRGB aCol) c
 		glNormal3f(aNv[2].iX, aNv[2].iY, aNv[2].iZ);
 		glVertex3f(aVx[2].iX, aVx[2].iY, aVx[2].iZ);
 	glEnd();
+
+	//glEnable( GL_TEXTURE_2D );
 	}
 
 
@@ -533,7 +542,6 @@ void CMyRenderer::RenderScene()
 	glFlush();
 //------------------------------------------------
 
-
 // APPLYING THE FIRST BLUR...
 #if defined(USE_FBO) && defined ( USE_SHADER )
 	//PREPARE THE FRAMEBUFFER OBJECT
@@ -580,7 +588,6 @@ void CMyRenderer::RenderScene()
 	loc = glGetUniformLocation( iShaderProgramId[2], "RT" );	glUniform1i( loc, 0 );
 	loc = glGetUniformLocation( iShaderProgramId[2], "Blur" );	glUniform1i( loc, 1 );
 #endif
-
 
 	//NOW DRAW TO THE SCREEN
 	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, KWindowSystemFrameBuffer );
@@ -631,6 +638,12 @@ void CMyRenderer::RenderScene()
 //DISABLE SHADER PROGRAM WHEN WRITING FPS ON THE SCREEN!
 #ifdef USE_SHADER
 	glUseProgram(0);
+#endif
+
+
+#ifdef USE_PIXEL_READ_DOF
+	//DOF with pixel buffers
+	SimulateDOF();
 #endif
 
 
@@ -735,33 +748,33 @@ void CMyRenderer::ModifyPixels()
 	float cocDiameter(0.0f); //init to something
 
 	//- LENS COEFFICIENTS
-	float relativeLensPosition = 6.0f; //0.1f; //s
-	float focalLength  = 5.4f; // f;
-	float aperture = 150.0f; //2.8f;
+	float relativeLensPosition = 6.0f;	//s
+	float focalLength  = 5.4f;			//f
+	float aperture = 150.0f;			//a
 
+	//Browse the picture rows
 	for(int y=0; y<iScreenHeight; y++)
 		{
+		//Browse the picture columns
 		for(int x=0; x<iScreenWidth; x++)
 			{
-			//DEPTH SPACE
+			//Read depth from depth buffer
 			pixelDepth = *(iDepthBuffer+(y*iScreenWidth)+x); //d
 
-			//NASTY CODE
-			if( (1.0f == pixelDepth) )
-				{
-				//return;
-				}
-			else
+			//If not in focus, blur
+			if( (1.0f != pixelDepth) )
 				{
 				float pdOrig =pixelDepth;
-				//pixelDepth = pixelDepth*(KZFar-KZNear)+relativeLensPosition;	//(relativeLensPosition*KZFar)/(KZFar-(pixelDepth*(KZFar-relativeLensPosition)) );
 				pixelDepth = (KZFar*KZNear) / (KZFar - ( pixelDepth * (KZFar-KZNear)) );
 
 				//Calculate the circle of confusion:
 				//cocDiameter = 30*pixelDepth;//pixelDepth; //abs(  aperture * ( relativeLensPosition*( 1.0f/focalLength - 1.0f/pixelDepth)-1) );
-				cocDiameter = 2.0f+fabsf(  aperture * ( relativeLensPosition*( 1.0f/focalLength - 1.0f/pixelDepth)-1) );
+				
+				cocDiameter = 2.0f + fabsf(  aperture * ( relativeLensPosition*( 1.0f/focalLength - 1.0f/pixelDepth)-1) );
+				
 				//cocDiameter = (1-pdOrig)*5+abs(  aperture * ( relativeLensPosition*( 1.0f/focalLength - 1.0f/pixelDepth)-1) );
-				//cocDiameter = abs(  aperture * ( pow(relativeLensPosition*( (1.0f/focalLength)-(1.0f/(pixelDepth))-1),2) ));
+				
+				//cocDiameter =          fabsf(  aperture * ( pow(relativeLensPosition*( (1.0f/focalLength)-(1.0f/(pixelDepth))-1),2) ));
 
 				//Apply the filter accordingly:
 				ApplyFilter(static_cast<int>(cocDiameter), x, y );
@@ -789,16 +802,16 @@ void CMyRenderer::ApplyFilter(int aCocDiameter, int aX, int aY )
 					*(iPixelBuffer1+(aY*iScreenWidth*4)+4*aX+3)
 					);
 
-	//if(radius<2.0f)
-	//	{
-	//	*(iPixelBuffer2+(aY*iScreenWidth*4)+4*aX  ) += pixel.getR()-(0.2*radius);
-	//	*(iPixelBuffer2+(aY*iScreenWidth*4)+4*aX+1) += pixel.getG()-(0.2*radius);
-	//	*(iPixelBuffer2+(aY*iScreenWidth*4)+4*aX+2) += pixel.getB()-(0.2*radius);
-	//	*(iPixelBuffer2+(aY*iScreenWidth*4)+4*aX+3) += pixel.getA()-(0.2*radius);
-	//	//radius=(radius>1)?2.0f:radius;
-	//	}
-	//else
-	//	{
+	if(radius<2.0f)
+		{
+		*(iPixelBuffer2+(aY*iScreenWidth*4)+4*aX  ) += pixel.iR-(0.2*radius);
+		*(iPixelBuffer2+(aY*iScreenWidth*4)+4*aX+1) += pixel.iG-(0.2*radius);
+		*(iPixelBuffer2+(aY*iScreenWidth*4)+4*aX+2) += pixel.iB-(0.2*radius);
+		*(iPixelBuffer2+(aY*iScreenWidth*4)+4*aX+3) += pixel.iA-(0.2*radius);
+		//radius=(radius>1)?2.0f:radius;
+		}
+	else
+		{
 		//Calculate intensity
 		TColorRGB intensity = pixel/area;
 
@@ -835,7 +848,7 @@ void CMyRenderer::ApplyFilter(int aCocDiameter, int aX, int aY )
 					}
 				}
 			}
-//		}
+		}
 
 	}
 
@@ -976,17 +989,17 @@ void CMyRenderer::RenderObject( )
 		triangleColor = iMesh->iFaceColors.at(triangleIndex);
 
 		//check that there is enough vertices in the vertices list
-		if( (t.V1()<=vertCount ) && (t.V2()<=vertCount) && (t.V3()<=vertCount) )
+		if( (t.iV1<=vertCount ) && (t.iV2<=vertCount) && (t.iV3<=vertCount) )
 			{
 			//VERTICES
-			vx[0] = iMesh->iVertices.at(t.V1());
-			vx[1] = iMesh->iVertices.at(t.V2());
-			vx[2] = iMesh->iVertices.at(t.V3());
+			vx[0] = iMesh->iVertices.at(t.iV1);
+			vx[1] = iMesh->iVertices.at(t.iV2);
+			vx[2] = iMesh->iVertices.at(t.iV3);
 
 			//NORMALS
-			nv[0] = iMesh->iVertexNormals.at(t.V1());
-			nv[1] = iMesh->iVertexNormals.at(t.V2());
-			nv[2] = iMesh->iVertexNormals.at(t.V3());
+			nv[0] = iMesh->iVertexNormals.at(t.iV1);
+			nv[1] = iMesh->iVertexNormals.at(t.iV2);
+			nv[2] = iMesh->iVertexNormals.at(t.iV3);
 
 			iPolyCount++;
 			DrawTriangle( &vx[0], &nv[0], triangleColor );
