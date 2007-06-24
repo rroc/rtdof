@@ -50,7 +50,7 @@ glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
 glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
 glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
 
-GLfloat light_position[] = { 0.0, 0.0, 1.0, 0.0 };
+GLfloat light_position[] = { 0.5, 0.3, 0.7, 0.0 };
 
 GLfloat light_ambient[]= { 0.5f, 0.5f, 0.5f, 0.5f };
 GLfloat light_diffuse[]= { 1.0f, 1.0f, 1.0f, 1.0f };

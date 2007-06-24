@@ -1,8 +1,9 @@
+/*
 uniform float distanceScale;
 
 varying vec3 vNormal;
 varying vec3 vViewVec;
-varying vec4 vVertexColor;
+//varying vec4 vVertexColor;
 
 void main(void)
 	{
@@ -16,5 +17,27 @@ void main(void)
 	// instead of the fragment shader to improve performance.
 	vViewVec = vec3(distanceScale * gl_ModelViewMatrix * gl_Vertex);
 	
-	vVertexColor = gl_FrontMaterial.diffuse.rgba;
+//	vVertexColor = gl_FrontMaterial.diffuse.rgba;
 	}
+*/
+
+uniform float distanceScale;
+
+varying vec3 vNormal;
+varying vec3 vViewVec;
+varying vec3 vVertexColor;
+
+void main(void)
+{
+	gl_Position = ftransform();
+
+	// Eye-space lighting
+	vNormal = gl_NormalMatrix * gl_Normal;
+
+	// We multiply with distance scale in the vertex shader
+	// instead of the fragment shader to improve performance.
+	vViewVec = -vec3(distanceScale * gl_ModelViewMatrix * gl_Vertex);
+
+	//Have our colors interpolated as well
+	vVertexColor = gl_FrontMaterial.diffuse.rgb;
+}
