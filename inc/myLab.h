@@ -6,7 +6,7 @@
 
 //#define USE_FPS_LIMIT
 #define USE_OPENGL_RENDERER
-
+//#define USE_VERTEX_ARRAYS
 #define USE_SYMBIAN_STYLE_CONSTANTS
 
 //OPENGL uses degrees...

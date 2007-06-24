@@ -121,7 +121,7 @@ CMyRenderer::CMyRenderer( const int aWidth, const int aHeight )
 	
 	InitForFrameBufferObject();
 
-	SetShaders();
+	//SetShaders();
 	}
 
 
@@ -257,7 +257,7 @@ void CMyRenderer::InitForFrameBufferObject()
 
 	//// assign the window system framebuffer again
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, KWindowSystemFrameBuffer);
-	//glBindTexture( GL_TEXTURE_2D, 0 );
+	glBindTexture( GL_TEXTURE_2D, 0 );
 	CheckFrameBufferStatus();
 	}
 
@@ -275,6 +275,7 @@ void CMyRenderer::CreateScene()
 	//LOAD FROM 3DS
 	TMeshLoader* loader = new TMeshLoader();
 
+	//BEAR
 	CMesh* meshObject = new CMesh();
 	loader->Load3DS(*meshObject, "3ds/icebear.3ds", 0.03 );
 	if(meshObject->iVertices.size()>1)
@@ -286,6 +287,14 @@ void CMyRenderer::CreateScene()
 	iMeshList.push_back( new CIcosahedron(size-1) );
 	iMeshList.push_back( new CTitanic(size/2) );
 
+	//LANDSCAPE
+	meshObject = new CMesh();
+	loader->Load3DS(*meshObject, "3ds/scene.3ds", 0.5 );
+	if(meshObject->iVertices.size()>1)
+		{
+		iMeshList.push_back( meshObject );
+		}
+
 	//CALCULATE NORMALS
 	for(int i=0, j=iMeshList.size(); i<j; i++)
 		{
@@ -293,7 +302,7 @@ void CMyRenderer::CreateScene()
 		iMeshList.at(i)->randomColors();
 		}
 	iMeshList.at(0)->setSolidColor(0.8f,0.8f,1.0f);
-
+	iMeshList.at(iMeshList.size()-1)->setSolidColor(0.8f,0.8f,1.0f);
 	iSceneMesh = iMeshList.at(1);
 
 
@@ -377,7 +386,7 @@ void CMyRenderer::DrawText() const
 	{
 	//float x = //-0.85;
 	//float y = //-0.95;
-	float x = 150.0f, y= iScreenHeight-200.0f;
+	float x = 50.0f, y= 20.0f;
 
 	glPushMatrix();
 
@@ -388,24 +397,23 @@ void CMyRenderer::DrawText() const
 	glMatrixMode( GL_MODELVIEW);
 	glLoadIdentity();
 
-	glDisable(GL_LIGHTING);
-	glDisable(GL_CULL_FACE);
+	//glDisable(GL_LIGHTING);
+	//glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
 
-	glColor3f(1,0,0);
+	glColor3f(1,1,1);
 	glRasterPos2f(x, y);
-	int len = (int) strlen(iFpsCountString);
-
-	for (int i = 0; i < len; i++)
+	for (int i=0, len=strlen(iFpsCountString); i < len; i++)
 		{
-		glutBitmapCharacter(GLUT_BITMAP_9_BY_15, iFpsCountString[i]);
+		glutBitmapCharacter(GLUT_BITMAP_9_BY_15, iFpsCountString[i] );
+		//glutBitmapCharacter( GLUT_BITMAP_HELVETICA_12, iFpsCountString[i] );
 		}
-	glFlush();
+	//glFlush();
 	//glutSwapBuffers();
 
-	glEnable(GL_CULL_FACE);
+	//glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+	//glEnable(GL_LIGHTING);
 	glPopMatrix();
 	}
 
@@ -552,8 +560,126 @@ void CMyRenderer::DrawVertexNormal( TVector3 vx[], TVector3 nv[]) const
 *	color the triangle.
 *
 */
+
 void CMyRenderer::RenderScene()
 	{
+	iPolyCount=0;
+
+	//SET PERSPECTIVE
+	glMatrixMode( GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective( 45.0f, iFBOTextureWidth/iFBOTextureHeight, KZNear, KZFar);
+
+	//Rest is for the models...
+	glMatrixMode( GL_MODELVIEW);
+	glLoadIdentity();
+	gluLookAt (0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+
+	//CHANGE OBJECT IF NEEDED
+	iMeshIndex = (iMeshIndex<0)?iMeshList.size()-1:iMeshIndex;
+	iMeshIndex = (iMeshIndex>iMeshList.size()-2)?0:iMeshIndex;
+	if(iOldMeshIndex != iMeshIndex)
+		{
+		iSceneMesh = iMeshList.at( iMeshIndex );
+		iOldMeshIndex=iMeshIndex;
+		}
+
+	//APPLY ROTATIONS
+	iRootRot->Rotate( iAnglesChange );
+	//to all others as well
+	for(int i=0,j=iSceneRotations.size();i<j;i++)
+		{
+		iSceneRotations.at(i)->Rotate( iAnglesChange );
+		}
+
+
+
+
+	//PREPARE THE FRAMEBUFFER OBJECT
+	glViewport( 0,0, iFBOTextureWidth, iFBOTextureHeight );
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, iFrameBufferId);
+
+	glDrawBuffer( GL_COLOR_ATTACHMENT0_EXT );
+
+//	glClearColor (0.0, 1.0, 0.0, 0.0);
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	glEnable( GL_TEXTURE_2D );	
+	//DRAW THE WHOLE SCENE (ALL OBJECTS)
+	//glUseProgram(iShaderProgramId);
+
+
+
+	//DRAW LANDSCAPE
+	iMesh = iMeshList.at(iMeshList.size()-1);
+	if(NULL!=iMesh)
+		{
+		glLoadIdentity();
+		glTranslatef( -15.0, 0.0, -50-(KZNear) );
+		RenderPipeLine( );
+		glLoadIdentity();
+		}
+
+	//DRAW Nodes
+	DrawSceneNode( iScene );
+
+	//glGenerateMipmapEXT( GL_TEXTURE_2D );
+
+	//glutWireSphere(1,20,16);
+
+
+////-----------------------------------------
+//	for(int i=1; i<KNumberOfColorMaps-1; i++)
+//		{
+//		glUseProgram(iShaderProgramId);             // enable shaders
+//		glDrawBuffer( GL_COLOR_ATTACHMENT0_EXT+i ); // target = 
+//		RenderSceneOnQuad( i, 0 );                // draw using textures i
+//		}
+////-----------------------------------------
+	//glUseProgram(0);
+	//glDisable( GL_TEXTURE_2D );
+	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, KWindowSystemFrameBuffer );
+	glViewport( 0,0, iScreenWidth, iScreenHeight );
+
+	//CLEAR SCREEN AMD DEPTH BUFFER
+	//glClearColor (0.0, 0.0, 0.0, 0.0);
+	//glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	
+
+	//Render a quad with the pre-rendered scene as a texture
+	//RenderSceneOnQuad( 0, 0 );
+
+	glFlush(); // Force the execution of OpenGL commands so far
+	
+
+
+	//DOF with pixel buffers
+	//SimulateDOF();
+
+#ifdef USE_FPS_LIMIT
+	//framerate limiter
+	while(glutGet(GLUT_ELAPSED_TIME)-iPreviousTime < 30);
+	iPreviousTime = glutGet(GLUT_ELAPSED_TIME);
+#else
+	FramesPerSec();
+	DrawText();
+	glFlush(); // Force the execution of OpenGL commands so far
+#endif
+
+	//Swap to screen
+	glutSwapBuffers();
+
+	glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+	glEnable(GL_LIGHTING);
+	}
+/*
+void CMyRenderer::RenderScene()
+	{
+	iPolyCount=0;
+	//CLEAR SCREEN AMD DEPTH BUFFER
+	glClearColor (0.0, 0.0, 0.0, 0.0);
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
 	//SET PERSPECTIVE
 	glMatrixMode( GL_PROJECTION);
 	glLoadIdentity();
@@ -582,46 +708,58 @@ void CMyRenderer::RenderScene()
 		}
 
 	//PREPARE THE FRAMEBUFFER OBJECT
-	glViewport( 0,0, iFBOTextureWidth, iFBOTextureHeight );
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, iFrameBufferId);
-////	glClearColor (0.0, 1.0, 0.0, 0.0);
-	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
-	glDrawBuffer( GL_COLOR_ATTACHMENT0_EXT );
-	
-	//DRAW THE WHOLE SCENE (ALL OBJECTS)
-	glUseProgram(iShaderProgramId);
+//	glViewport( 0,0, iFBOTextureWidth, iFBOTextureHeight );
+//	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, iFrameBufferId);	
+//////	glClearColor (0.0, 1.0, 0.0, 0.0);
+//	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+//
+//
+//	//DRAW THE WHOLE SCENE (ALL OBJECTS)
+//	glUseProgram(iShaderProgramId);
 	DrawSceneNode( iScene );
+//	glUseProgram(0);
 
-	//glGenerateMipmapEXT( GL_TEXTURE_2D );
+
+	//------------------------------------------------------------
+	////configure the transforms for 2D
+	//glMatrixMode( GL_PROJECTION);
+	//glLoadIdentity();
+	//gluOrtho2D( 0.0f, iFBOTextureWidth, 0.0f, iFBOTextureHeight);
+	//glMatrixMode( GL_MODELVIEW);
+	//glLoadIdentity();
+
+	//glDisable(GL_LIGHTING);
+	//glDisable(GL_CULL_FACE);
+ //   glDisable(GL_DEPTH_TEST);
+
+	////SET THE READING BUFFER
+	//glReadBuffer( GL_BACK );
+	////glReadPixels( 0,0, iFBOTextureWidth, iFBOTextureHeight, GL_RGBA, GL_FLOAT, iPixelBuffer1 );
+	//glReadPixels( 0,0, iScreenWidth, iScreenHeight, GL_DEPTH_COMPONENT, GL_FLOAT, iDepthBuffer);
+	//------------------------------------------------------------
 
 	//glColor3f(1,0,0);
 	//glutWireSphere(1,20,16);
+//	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, KWindowSystemFrameBuffer);
+//	glViewport( 0,0, iScreenWidth, iScreenHeight );
 
-//-----------------------------------------
-//	for(int i=1; i<KNumberOfTextures; i++)
-//		{
-//		glUseProgram(iShaderProgramId);             // enable shaders
-//		glDrawBuffer( GL_COLOR_ATTACHMENT0_EXT+i ); // target = 
-//		RenderSceneOnQuad( i, 0 );                // draw using textures i
-//		}
-//-----------------------------------------
-	glUseProgram(0);
 
-	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, KWindowSystemFrameBuffer );
-	glViewport( 0,0, iScreenWidth, iScreenHeight );
-
-	//CLEAR SCREEN AMD DEPTH BUFFER
-	//glClearColor (0.0, 0.0, 0.0, 0.0);
-	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-	
+//	glGenerateMipmapEXT( GL_TEXTURE_2D );
 
 	//Render a quad with the pre-rendered scene as a texture
-	RenderSceneOnQuad( 0, -1 );
-
-
+//	RenderSceneOnQuad( 0, -1 );
 
 	glFlush(); // Force the execution of OpenGL commands so far
+
+
+	//------------------------------------------------------------
+	////Write back to the buffer
+	//glDrawBuffer( GL_BACK );
+	//glRasterPos2i( 0, 0 );
+	////glDrawPixels( iFBOTextureWidth, iFBOTextureHeight, GL_RGBA, GL_FLOAT, iPixelBuffer1);
+	//glDrawPixels( iScreenWidth, iScreenHeight, GL_LUMINANCE, GL_FLOAT, iDepthBuffer);
+	//glFlush();
+	//------------------------------------------------------------
 
 
 	//DOF with pixel buffers
@@ -645,13 +783,10 @@ void CMyRenderer::RenderScene()
 	glEnable(GL_LIGHTING);
 	}
 
-
+*/
 
 void CMyRenderer::RenderSceneOnQuad(int aTextureId1, int aTextureId2 )
 	{
-	const int iQuadWidth= 512;
-	const int iQuadHeight = 512;
-	
 	glMatrixMode( GL_PROJECTION );
 	glLoadIdentity();
 	gluOrtho2D( 0.0f, iScreenWidth, 0.0f, iScreenHeight );
@@ -662,6 +797,7 @@ void CMyRenderer::RenderSceneOnQuad(int aTextureId1, int aTextureId2 )
 	glDisable( GL_CULL_FACE );
 	glDisable( GL_DEPTH_TEST );
 
+	glEnable( GL_TEXTURE_2D );
 
 	glActiveTexture( GL_TEXTURE0 );
 	glBindTexture( GL_TEXTURE_2D, iColorMapId[aTextureId1] );
@@ -689,7 +825,7 @@ void CMyRenderer::RenderSceneOnQuad(int aTextureId1, int aTextureId2 )
 	glEnd();
 
 	glFlush();	
-//	glDisable( GL_TEXTURE_2D );
+	glDisable( GL_TEXTURE_2D );
 	
 	glEnable( GL_CULL_FACE );
 	glEnable( GL_DEPTH_TEST );
@@ -888,7 +1024,6 @@ void CMyRenderer::DrawSceneNode( CSceneNode* aNode )
 			iMesh = new CMesh( *(mNode->GetMesh()) );
 			if(NULL!=iMesh)
 				{
-				iPolyCount=0;
 				RenderPipeLine( );
 
 				//Object center
@@ -949,15 +1084,35 @@ void CMyRenderer::DrawSceneNode( CSceneNode* aNode )
 
 void CMyRenderer::RenderPipeLine( )
 	{
+	TTriangle t;
+
 	//vertice count
 	int vertCount(	 static_cast<int>( iMesh->iVertices.size()    ) );
 	int normalCount( static_cast<int>( iMesh->iFaceNormals.size() ) );
 
+
+#ifdef USE_VERTEX_ARRAYS
+	glVertexPointer(3, GL_FLOAT, 0, reinterpret_cast<void*>( &iMesh->iVertices.at(0) ) );
+	glColorPointer( 4, GL_FLOAT, 0, reinterpret_cast<void*>( &iMesh->iFaceColors.at(0) ) );
+	glNormalPointer(   GL_FLOAT, 0, reinterpret_cast<void*>( &iMesh->iVertexNormals.at(0) ) );
+
+	glBegin(GL_TRIANGLES);
+	//Go through the Mesh Polygon by polygon
+	for (int triangleIndex=0, triangleCount=static_cast<int>(iMesh->iTriangles.size()); triangleIndex<triangleCount; triangleIndex++)
+		{
+		t = iMesh->iTriangles.at(triangleIndex);
+		glArrayElement( t.V1() );
+		glArrayElement( t.V2() );
+		glArrayElement( t.V3() );
+		}
+	glEnd();
+	iPolyCount += iMesh->iTriangles.size()*3;
+
+#else
 	TVector3  vx[3];//v1, v2, v3;
 	TVector3  nv[3];//nv1, nv2, nv3;
 	TColorRGB triangleColor;//nv1, nv2, nv3;
 
-	TTriangle t;
 	//Go through the Mesh Polygon by polygon
 	for (int triangleIndex=0, triangleCount=static_cast<int>(iMesh->iTriangles.size()); triangleIndex<triangleCount; triangleIndex++)
 		{
@@ -983,6 +1138,8 @@ void CMyRenderer::RenderPipeLine( )
 			//DrawOnScreen( &vx[0], &nv[0], triangleColor );
 			}
 		}
+#endif
+
 	}
 
 
@@ -1035,7 +1192,7 @@ void CMyRenderer::ResizeScene(const int aWidth, const int aHeight)
 	{
     iScreenWidth =  aWidth;
     iScreenHeight = aHeight;
-
+/*
 	int min = (iScreenHeight<iScreenWidth)?iScreenHeight:iScreenWidth;
 	int max = (iScreenHeight<iScreenWidth)?iScreenWidth:iScreenHeight;
 	max = (max<1)? 1:max;
@@ -1047,9 +1204,9 @@ void CMyRenderer::ResizeScene(const int aWidth, const int aHeight)
 	iFBOTextureHeight = (iScreenHeight<iScreenWidth)?min:max;
 	iFBOTextureWidth  = (iScreenHeight<iScreenWidth)?max:min;
 
-
+*/
 	// We clear both the color and the depth buffer so to draw the next frame
-    glClear ( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+//    glClear ( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
 	// Viewport transformation
     glViewport( 0, 0, iScreenWidth, iScreenHeight );

@@ -82,10 +82,10 @@ void initOpenGL()
 
 	glutDisplayFunc(  RenderSceneWithRenderer );
 	glutIdleFunc(     RenderSceneWithRenderer );
-	//glutReshapeFunc(  ResizeSceneWithRenderer );
+	glutReshapeFunc(  ResizeSceneWithRenderer );
 
 	//Init view
-	glClearColor (0.7, 0.7, 0.7, 0.7);
+	glClearColor (0.9, 0.9, 1.0, 0.7);
 
 	// Projection transformation
     glMatrixMode(GL_PROJECTION); // Specifies which matrix stack is the target for matrix operations
@@ -106,6 +106,14 @@ void initOpenGL()
 
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity ();
+
+#ifdef USE_VERTEX_ARRAYS
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_NORMAL_ARRAY);
+	glEnableClientState(GL_COLOR_ARRAY);
+	//glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	//glEnableClientState(GL_EDGE_FLAG_ARRAY);
+#endif
 	}
 
 
