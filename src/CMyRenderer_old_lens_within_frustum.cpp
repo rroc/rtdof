@@ -14,8 +14,8 @@
 //CONSTANTS
 const int KScreenWidth = 480; ///< Default screen width  ( = PSP's screen width)
 const int KScreenHeight= 272; ///< Default screen height ( = PSP's screen height)
-const float KZNear	= 50.0f;
-const float KZFar	= 800.0f;
+const float KZNear	= 5.0f;
+const float KZFar	= 50.0f;
 
 //INIT STATIC DATA
 CMyRenderer* CMyRenderer::iCurrentRenderer = 0;
@@ -123,30 +123,30 @@ CMyRenderer::~CMyRenderer()
 */
 void CMyRenderer::CreateScene()
 	{
-	//INITIALIZE MESHES
+	iScene = new CSceneNode();
+
 
 	//CMesh* meshObject = new CMesh();
 	//TMeshLoader* loader = new TMeshLoader();
 	//loader->Load3DS(*meshObject, "3ds/icebear.3ds" );
+
 //	CMesh* meshObject  = new CIcosahedron(0.9);
-	float size = 7.0f;
-	CMesh* meshObject  = new CBall(48, size);
+	CMesh* meshObject  = new CBall(16, 1.3);
 //	CMesh* meshObject  = new CTitanic();
+	//meshObject->calculateFaceNormals();
 	meshObject->calculateVertexNormals();
 	meshObject->randomColors();
 
+	TVector3 transInit = TVector3(0, 0, -10 );
 
-
-	//INITIALIZE POSITION
-	TVector3 transInit = TVector3(0, 0, -(KZNear+size));
+	//TVector3 transPerObject = TVector3(0.7, 0.7, -0.7);
+	TVector3 transPerObject = TVector3(0.1, 0.1, -4.0f);
 	TVector3 rotXY =  TVector3(-1, 0, 0 );
 	float rotAngle = 40;
 
-
-	//TRANSFERS PER OBJECT
-	TVector3 transPerObject = TVector3(0.1, 0.1, -10.0f);
 	//TVector3 rotXY2 =  TVector3(1, 0, 0 );
-	//float rotAngle2 = -35;
+	//float rotAngle2 = -95;
+
 
 	CSceneNode* mNodes[5];
 	CSceneTranslation* tNodes[5];
@@ -158,18 +158,15 @@ void CMyRenderer::CreateScene()
 
 
 
-	//BUILD THE SCENE:
-	//parent node
-	iScene = new CSceneNode();
-	CSceneNode* currentNode = iScene; 
-
-	//initial transformations
+	CSceneNode* currentNode = iScene;
+	//R*T
 	currentNode = currentNode->addChild( new CSceneTranslation( transInit ) );
 	currentNode = currentNode->addChild( iRootRot );
+//	currentNode = currentNode->addChild( rootRot2 );
 
-	//First mesh
 	currentNode = currentNode->addChild( mNodes[0] );
-	//5 others
+
+
 	for(int i=1; i<7; i++)
 		{
 		mNodes[i] = new CSceneNode( meshObject );
@@ -518,19 +515,6 @@ void CMyRenderer::RenderScene()
 
 
 
-
-
-
-
-
-
-
-
-
-/** \brief Function thant applies the DOF simulation using z-buffer information
-* and OpenGL glReadPixels();
-*
-*/
 void CMyRenderer::SimulateDOF()
 	{
 	//Read pixels from the buffer
@@ -546,62 +530,68 @@ void CMyRenderer::SimulateDOF()
 	glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
 
-	//SET THE READING BUFFER
+	//Set the reading buffer
 	glReadBuffer( GL_BACK );
+
+//	const int width=200;
+//	const int height=150;
+	//float pixelBuffer[height*width*4];
+	//float depthBuffer[height*width];
+
 	glReadPixels( 0,0, iScreenWidth, iScreenHeight, GL_RGBA, GL_FLOAT, iPixelBuffer1 );
 	//glReadPixels( 0,0, iScreenWidth, iScreenHeight, GL_RGBA, GL_FLOAT, iPixelBuffer2 );
 	glReadPixels( 0,0, iScreenWidth, iScreenHeight, GL_DEPTH_COMPONENT, GL_FLOAT, iDepthBuffer);
+	
+	//Modify Pixels according to depth
 
-	//MODIFY PIXELS ACCORDING TO DEPTH
-	ModifyPixels();
-
-	//Write back to the buffer
-	glDrawBuffer( GL_BACK );
-	glRasterPos2i( 0, 0 );
-	//glDrawPixels( iScreenWidth, iScreenHeight, GL_LUMINANCE, GL_FLOAT, iDepthBuffer);
-	//glDrawPixels( iScreenWidth, iScreenHeight, GL_BLUE, GL_FLOAT, iPixelBuffer1);
-	glDrawPixels( iScreenWidth, iScreenHeight, GL_RGBA, GL_FLOAT, iPixelBuffer2);
-	glFlush();
-	}
-
-
-
-/** \brief Browses through the depth buffer and sets the lens parameters
-*
-*/
-void CMyRenderer::ModifyPixels()
-	{
 	float pixelDepth; //d  (from z-buffer)
+
 	float cocDiameter(0.0f); //init to something
 
-	//- LENS COEFFICIENTS
-	float relativeLensPosition = 6.0f; //0.1f; //s
-	float focalLength  = 5.5f; // f; 
-	float aperture = 150.0f; //2.8f;
+	float aperture     = 0.3f; //2.8f;
 
-	for(int y=0; y<iScreenHeight; y++)
+
+	//DEPTH SPACE
+	float focalLength  = 0.05f; // f; 
+	float relativeLensPosition = 0.1f; //s
+
+//	float value = pixelDepth = *(iDepthBuffer+(300*iScreenWidth)+400);
+//	value = value;
+
+	for(int y=(0+cocDiameter); y<iScreenHeight-cocDiameter; y++)
 		{
-		for(int x=0; x<iScreenWidth; x++)
+		for(int x=0+cocDiameter; x<iScreenWidth-cocDiameter; x++)
 			{
 			//DEPTH SPACE
 			pixelDepth = *(iDepthBuffer+(y*iScreenWidth)+x); //d
 
 			//NASTY CODE
-			if( (1.0f == pixelDepth) )
+			if( (pixelDepth<relativeLensPosition) ) //1.0f is the maximum depth
+				{
+				//return;
+				}
+			else if( (1.0f == pixelDepth) )
 				{
 				//return;
 				}
 			else
 				{
-				float pdOrig =pixelDepth;
-				//pixelDepth = pixelDepth*(KZFar-KZNear)+relativeLensPosition;	//(relativeLensPosition*KZFar)/(KZFar-(pixelDepth*(KZFar-relativeLensPosition)) );
-				pixelDepth = (KZFar*KZNear) / (KZFar - ( pixelDepth * (KZFar-KZNear)) );
+				//from pixel depth to depth ( pd -> d )
+				pixelDepth -= relativeLensPosition; 
+
+				//Check if the object is too near the lens
+				pixelDepth = (pixelDepth < focalLength)? focalLength : pixelDepth;
+
+				//...SO, now the d should be between [f, 1-s]
+
+				//CONVERT TO FRUSTUM SPACE (all: d, f, s)
+				relativeLensPosition *= (KZFar-KZNear);	//(KZNear*KZFar)/(KZFar-(relativeLensPosition*(KZFar-KZNear)) );
+				pixelDepth *= (KZFar-KZNear);			//(relativeLensPosition*KZFar)/(KZFar-(pixelDepth*(KZFar-relativeLensPosition)) );
+				focalLength *= (KZFar-KZNear);			//(KZNear*relativeLensPosition)/(KZNear-(focalLength*(KZNear-relativeLensPosition)) );
+				//focalLength = abs(focalLength);
 
 				//Calculate the circle of confusion:
-				//cocDiameter = 30*pixelDepth;//pixelDepth; //abs(  aperture * ( relativeLensPosition*( 1.0f/focalLength - 1.0f/pixelDepth)-1) );
-				//cocDiameter = abs(  aperture * ( relativeLensPosition*( 1.0f/focalLength - 1.0f/pixelDepth)-1) );
-				cocDiameter = (1-pdOrig)*5+abs(  aperture * ( relativeLensPosition*( 1.0f/focalLength - 1.0f/pixelDepth)-1) );
-				//cocDiameter = abs(  aperture * ( pow(relativeLensPosition*( (1.0f/focalLength)-(1.0f/(pixelDepth))-1),2) ));
+				cocDiameter = abs(  aperture*( relativeLensPosition*( 1.0f/focalLength - 1.0f/pixelDepth)-1) );
 
 				//Apply the filter accordingly:
 				ApplyFilter(cocDiameter, x, y );
@@ -609,15 +599,20 @@ void CMyRenderer::ModifyPixels()
 			}
 		}
 
+	//Write back to the buffer
+	glDrawBuffer( GL_BACK );
+	glRasterPos2i( 0, 0 );
+	//glDrawPixels( iScreenWidth, iScreenHeight, GL_BLUE, GL_FLOAT, iDepthBuffer);
+	//glDrawPixels( iScreenWidth, iScreenHeight, GL_BLUE, GL_FLOAT, iPixelBuffer1);
+	glDrawPixels( iScreenWidth, iScreenHeight, GL_RGBA, GL_FLOAT, iPixelBuffer2);
+	glFlush();
 	}
 
-
-/** \brief Apply the average filter with a desired diameter
-*
-*/
 void CMyRenderer::ApplyFilter(int aCocDiameter, int aX, int aY )
 	{
-	//aCocDiameter = (aCocDiameter<2)?2:aCocDiameter;
+	//const int width=200;
+	//const int height=150;
+
 	float radius = aCocDiameter/2;
 	float area   = pi*(radius*radius); //area of a circle
 
@@ -628,73 +623,36 @@ void CMyRenderer::ApplyFilter(int aCocDiameter, int aX, int aY )
 					*(iPixelBuffer1+(aY*iScreenWidth*4)+4*aX+2), 
 					*(iPixelBuffer1+(aY*iScreenWidth*4)+4*aX+3) 
 					);
+	//Calculate intensity
+	TColorRGB intensity = pixel/area;
+	
 
-	//if(radius<2.0f)
-	//	{
-	//	*(iPixelBuffer2+(aY*iScreenWidth*4)+4*aX  ) += pixel.getR()-(0.2*radius);
-	//	*(iPixelBuffer2+(aY*iScreenWidth*4)+4*aX+1) += pixel.getG()-(0.2*radius);
-	//	*(iPixelBuffer2+(aY*iScreenWidth*4)+4*aX+2) += pixel.getB()-(0.2*radius);
-	//	*(iPixelBuffer2+(aY*iScreenWidth*4)+4*aX+3) += pixel.getA()-(0.2*radius);
-	//	//radius=(radius>1)?2.0f:radius;
-	//	}
-	//else
-	//	{
-		//Calculate intensity
-		TColorRGB intensity = pixel/area;
+	////Applying filter
+	int radiusInt = static_cast<int>(radius);
 
-		//Keep the Alpha
-		*(iPixelBuffer2+(aY*iScreenWidth*4)+4*aX+3)  = pixel.getA();
+	int pixelX, pixelY;
+	int screenX = ( aX-radiusInt <0 )? radiusInt: aX;
+	int screenY = ( aY-radiusInt <0 )? radiusInt: aY;
+	screenX = ( aX+radiusInt >iScreenWidth )?  iScreenWidth-radiusInt:  screenX;
+	screenY = ( aY+radiusInt >iScreenHeight )? iScreenHeight-radiusInt: screenY;
 
-		////Applying filter
-		int radiusInt = static_cast<int>(radius);
-
-		int pixelX, pixelY;
-		int screenX = ( aX-radiusInt <0 )? radiusInt: aX;
-		int screenY = ( aY-radiusInt <0 )? radiusInt: aY;
-		screenX = ( aX+radiusInt >iScreenWidth )?  iScreenWidth-radiusInt:  screenX;
-		screenY = ( aY+radiusInt >iScreenHeight )? iScreenHeight-radiusInt: screenY;
-
-		for(int y= (-radiusInt); y<(radiusInt); y++)
+	for(int y= (-radiusInt); y<(radiusInt); y++)
+		{
+		for(int x=(-radiusInt); x<(radiusInt); x++)
 			{
-			for(int x=(-radiusInt); x<(radiusInt); x++)
+			//making circular filter
+			if( sqrt( static_cast<float>(x*x+y*y)) < radius )
 				{
-				//making circular filter
-				if( sqrt( static_cast<float>(x*x+y*y)) < radius )
-					{
-					pixelX=(screenX-x);
-					pixelY=(screenY-y);
-
-					//float factorX =  (radiusInt-abs(x))/radiusInt;
-					//float factorY =  (radiusInt-abs(y))/radiusInt;
-					//float factor = 0.5+(factorX+factorY)/2;
-					float factor = 1;
-
-					*(iPixelBuffer2+(pixelY*iScreenWidth*4)+4*pixelX  ) += factor*intensity.getR();
-					*(iPixelBuffer2+(pixelY*iScreenWidth*4)+4*pixelX+1) += factor*intensity.getG();
-					*(iPixelBuffer2+(pixelY*iScreenWidth*4)+4*pixelX+2) += factor*intensity.getB();
-					}
+				pixelX=(screenX-x);
+				pixelY=(screenY-y);
+				*(iPixelBuffer2+(pixelY*iScreenWidth*4)+4*pixelX  ) += intensity.getR();
+				*(iPixelBuffer2+(pixelY*iScreenWidth*4)+4*pixelX+1) += intensity.getG();
+				*(iPixelBuffer2+(pixelY*iScreenWidth*4)+4*pixelX+2) += intensity.getB();
+				*(iPixelBuffer2+(pixelY*iScreenWidth*4)+4*pixelX+3) = pixel.getA();
 				}
 			}
-//		}
-
+		}
 	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 void CMyRenderer::DrawSceneNode( CSceneNode* aNode )
@@ -901,12 +859,6 @@ void CMyRenderer::DrawOnScreen( TVector3 aVx[], TVector3 aNv[], TColorRGB aLight
 	}
 
 
-
-
-
-
-
-
 //-----------------------------
 //resize the window
 //-----------------------------
@@ -933,14 +885,6 @@ void CMyRenderer::ResizeScene(const int aWidth, const int aHeight)
 	// This command redraw the scene (it calls the same routine of glutDisplayFunc)
     glutPostRedisplay ();
 	}
-
-
-
-
-
-
-
-
 
 
 //SETTERS

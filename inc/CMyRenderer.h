@@ -328,7 +328,10 @@ class CMyRenderer
 		//void DrawOnScreen( int aTriangleIndex, bool aVertexNormalsUsed, bool aVisibility );
 		void DrawOnScreen( TVector3 aVx[], TVector3 aNv[], TColorRGB aLightColors[], TColorRGB aTriangleColor, bool aVisibility );
 
+		void CMyRenderer::ModifyPixels();
+
 		TColorRGB CalculateALight( TVector3 aNormalVector, TColorRGB aObjectColor );
+
 
 	//PUBLIC STATIC DATA
 	public:
