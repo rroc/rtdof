@@ -53,19 +53,12 @@ const int KNumberOfShaderPrograms = 3;
 */
 class CMyRenderer
 	{
-	public:
-		enum TRenderType {
-			ERenderVertices=0,
-			ERenderWire,
-			ERenderFaceShadedCulled,
-
-			//last value
-			EEmpty
-			};
 	//PUBLIC FUNCTIONS
+	//------------------
 	public:
 
 		//CONSTRUCTORS
+		//------------------
 
 		/**
 		* Default constructor.
@@ -81,9 +74,8 @@ class CMyRenderer
 		*/
 		CMyRenderer( const int aWidth, const int aHeight );
 
-
 		//DESTRUCTOR
-
+		//------------------
 		/**
 		* Default constructor.
 		* Frees the reserved memory (iMesh).
@@ -92,33 +84,10 @@ class CMyRenderer
 
 
 		//MEMBER FUNCTIONS
-
-		/**
-		* FPS calculation. Frames drawn in a second.
-		*/
-		void FramesPerSec();
-
-		/**
-		* Initializie OpenGL Lights
-		*/
-		void InitLights();
-
-		/**
-		* Text output. Prints text on the screen.
-		*/
-		void DrawText() const;
-
-		/**
-		* Renders a scene. This function is called from OpenGL, and renders a scene.
-		*/
+		///Renders a scene. This function is called from OpenGL, and renders a scene.
 		void RenderScene();
 
-		/**
-		* Renders a scene. This function is called from OpenGL when a window is resized,
-		* iScreenWidth and iScreenHeight are updated, and the display is refreshed.
-		* @param aWidth The new width of the screen
-		* @param aHeight The new height of the screen
-		*/
+		///Resize the rendering window
 		void ResizeScene(const int aWidth, const int aHeight);
 
 		///Creates a Scene
@@ -187,19 +156,6 @@ class CMyRenderer
 		TAngles CurrentAngles() const
 			{ return iCurrentAngles; };
 
-		/**
-		* Return the type of rendering.
-		* @return iRenderType
-		*/
-		TRenderType RenderType() const
-			{ return iRenderType; };
-
-		/**
-		* Returns true if transform is in process. Usually do not interrupt!
-		*/
-		bool TransformInProcess() const
-			{ return iTransformInProcess;}
-
 		TAngles RotAnglesChange() const
 			{ return iRotAnglesChange; };
 
@@ -212,6 +168,12 @@ class CMyRenderer
 		*/
 		void ChangeFocus( float aFocusChange ) 
 			{ iFocus += aFocusChange; }
+		
+		/** Changes the focus area
+		* @param aFocusArea amount of focus area
+		*/
+		void ChangeFocusArea( float aFocusArea ) 
+			{ iFocusArea += aFocusArea; }
 
 		/**
 		* Set the scale. Sets the current iScale used in Calculations()
@@ -265,171 +227,122 @@ class CMyRenderer
 		void SetCurrentAngles( float aXAngle, float aYAngle, float aZAngle  )
 			{ iCurrentAngles = TAngles(aXAngle, aYAngle, aZAngle);}
 
-		void SetRenderType( const TRenderType& aRenderType)
-			{iRenderType = aRenderType; };
-
 		void SetRotAngles( const TAngles& aAngles )
 			{iRotAnglesChange=TAngles(aAngles);}
 
 
-
-
-	//PRIVATE METHODS
+	//PRIVATE FUNCTIONS
+	//------------------
 	private:
+		//Constructors will call this one
+		void InitMain();
 
-		void InitForFrameBufferObject();
-
-		void RenderSceneOnQuad( int aColorMapId1, int aColorMapId2, int aQuadWidth, int aQuadHeight );
-		void SimulateDOF();
-		void ApplyFilter(int aCocDiameter, int aX, int aY );
-
-		void SetShaders( int& aShaderProgramId, char* aVertexShader, char* aFragmentShader );
-
-		//BASIC DRAWING FUNCTIONS
-
-		void DrawSceneNode( CSceneNode* aNode );
-
-		/**
-		* Draw a triangle. Draws a triangle between vertices, this is used when rendering polygons.
-		* @param aVx TVector3 table of 3 vertices
-		* @param aNv TVector3 table of 3 normals
-		* @param aCol TColorRGB face color
-		*/
-		void DrawTriangle(TVector3 aVx[], TVector3 aNv[], TColorRGB aCol) const;
-
-		/**
-		* Draws a triangle using OpenGL's 2D-lines. This is used when rendering polygons.
-		* @param v1 Vertex 1
-		* @param v2 Vertex 1
-		* @param v3 Vertex 1
-		* @param r element of RGB color
-		* @param g element of RGB color
-		* @param b element of RGB color
-		*/
-		void DrawWireTriangle( const TVector3& v1, const TVector3& v2, const TVector3& v3, float r, float g, float b ) const;
-
-		/**
-		* Draws a line using OpenGL's 3-D lines. This is used when rendering polygons.
-		* @param v1 Vertex 1
-		* @param v2 Vertex 1
-		* @param r element of RGB color
-		* @param g element of RGB color
-		* @param b element of RGB color
-		*/
-		void DrawLine(const TVector3& v1, const TVector3& v2, float r, float g, float b) const;
-
-		/**
-		* Draw AxisMark
-		* @param aX x-coord for the axis
-		* @param aY y-coord for the axis
-		* @param aZ z-coord for the axis
-		* @param aSize size of the axis
-		*/
-		void DrawAxisMark( float aX, float aY, float aZ, float aSize) const;
-
-		/**
-		* Draw Face Normal
-		* @param aMesh Mesh for which the normal is drawn
-		* @param aTriangleIndex number of the triangle for the normal
-		*/
-		void DrawFaceNormal( TVector3 vx[], TVector3 nv) const;
-		void DrawVertexNormal( TVector3 vx[], TVector3 nv[]) const;
-		//void DrawFaceNormal( const CMesh& aMesh, const int aTriangleIndex ) const;
-
+		//Render current object
 		void RenderObject( );
 
-		//void DrawOnScreen( int aTriangleIndex, bool aVertexNormalsUsed, bool aVisibility );
-		void DrawOnScreen( TVector3 aVx[], TVector3 aNv[], TColorRGB aTriangleColor );
+		// FPS calculation. Frames drawn in a second.
+		void FramesPerSec();
 
-		void CMyRenderer::ModifyPixels();
+		/// Initializie OpenGL Lights
+		void InitLights();
 
-		TColorRGB CalculateALight( TVector3 aNormalVector, TColorRGB aObjectColor );
+		/// Text output. Prints text on the screen.
+		void DrawText() const;
 
+
+
+		//DRAWING FUNCTIONS
+		//------------------
+		/// Draws a triangle using the face color
+		void DrawTriangle(TVector3 aVx[], TVector3 aNv[], TColorRGB aCol) const;
+		void DrawSceneNode( CSceneNode* aNode );
+
+		//FBO 
+		//--------
+		void InitForFrameBufferObject();
 		void CheckFrameBufferStatus();
+		void RenderSceneOnQuad( int aColorMapId );
+
+		//SHADERS
+		//--------
+		void SetShaders( int& aShaderProgramId, char* aVertexShader, char* aFragmentShader );
 		bool VerifyShaderCompilation( int aShaderId );
 		bool VerifyShaderProgram( int aShaderProgramId );
 
+
+		//Simulating DOF
+		//---------------
+		void SimulateDOF();
+		void ModifyPixels();
+		void ApplyFilter(int aCocDiameter, int aX, int aY );
+
+
+
 	//PUBLIC STATIC DATA
+	//------------------
 	public:
 		/// A static pointer to the current renderer object.
 		/// This is used to be able to pass rendering method to OpenGL.
 		static CMyRenderer* iCurrentRenderer;
-		int iAmountOfTriangles;
-
 		int	iMeshIndex;
 
+
+
 	//PRIVATE DATA
+	//------------------
 	private:
-		int iShaderProgramId[ KNumberOfShaderPrograms ];
+		CMesh* iSceneMesh;	///< Mesh object List
+		CMesh* iMesh;		///< Current Mesh object
 
-		float* iPixelBuffer1;
-		float* iPixelBuffer2;
-		float* iDepthBuffer;
-
-		GLuint iColorMapId[ KNumberOfColorMaps ];
-		GLuint iFrameBufferId;
-		GLuint iDepthMapId;
-
-
-		//OBJECT SPECIFICs
 		CSceneNode* iScene;
-		vector<CSceneRotation*> iSceneRotations; //current transformation matrix
-
 		CSceneRotation* iRootRot;
 		CSceneRotation* iRootRotNeg;
 
-		TMatrix4 iPerspectiveMatrix;
-		TMatrix4 iViewportMatrix;
+		GLuint iColorMapId[ KNumberOfColorMaps ];
+		GLuint iDepthMapId;
+		GLuint iFrameBufferId;
 
-		CMesh* iMesh; ///< CMesh object
-
-		vector<CMesh*> iMeshList; ///< CMesh object
-		int	iOldMeshIndex;
-		CMesh*  iSceneMesh; ///< CMesh object
-
-		TAngles iRotAnglesChange;
-
-		//WORLDMAP
-		TAngles iCurrentAngles;	///< Current angles of mesh (rot x, rot y, rot z)
 		TAngles iAnglesChange;	///< Change of angles per frame (rot x, rot y, rot z)
-		float iScale;		///< Scaling to be applied
-		float iFocus;
-
-		bool  iAxisDrawn;	///< Draw Axis or Not
-		bool  iNormalsDrawn; ///< Draw Normals or Not
-
-		bool  iTransformInProcess;	///< When true, do not interrupt
+		TAngles iCurrentAngles;	///< Current angles of mesh (rot x, rot y, rot z)
+		TAngles iRotAnglesChange;
 
 		TVector3 iPointOfRotation;	//< Center Point of rotation
 		TVector3 iViewVector;		//< Viewing direction vector
 
-		float iViewDistance;
+		bool  iAxisDrawn;	///< Draw Axis or Not
+		bool  iNormalsDrawn; ///< Draw Normals or Not
+		bool  iTransformInProcess;	///< When true, do not interrupt
 
 		char  iFpsCountString[ 60 ];	//< String for FPS
-		int   iFrame;				//< Current frame number (used to approximate FPS)
-		float iCurrentTime;			//< Current time
-		float iPreviousTime;		//< The previous second
-		long int   iPolyCount;
+		
+		float iCurrentTime;		//< Current time
+		float iFocus;
+		float iFocusArea;
+		float iPreviousFrame;	///< The previous second
+		float iPreviousTime;	///< The previous second
+		float iScale;			///< Scaling to be applied
+		float iViewDistance;
 
-		int iScreenWidth;	//< The width of the screen
+		float* iDepthBuffer;
+		float* iPixelBuffer1;
+		float* iPixelBuffer2;
+
+		int	iOldMeshIndex;
+		int iFrame;				//< Current frame number (used to approximate FPS)
 		int iScreenHeight;	//< The height of the screen
+		int iScreenWidth;	//< The width of the screen
+		int iShaderProgramId[ KNumberOfShaderPrograms ];
+		long int iPolyCount;
 
-		TRenderType iRenderType;
+		vector<CMesh*> iMeshList; ///< CMesh object
+		vector<CSceneRotation*> iSceneRotations; //current transformation matrix
 	};
 
 
 //EXTERNAL FUNCTIONS
-/**
-* Reference to rendering function. Used to pass the render object's rendering function to OpenGL.
-*/
+/// Reference to rendering function. Used to pass the render object's rendering function to OpenGL.
 extern void RenderSceneWithRenderer();
-
-/**
-* Reference to resize function. Used to pass the render object's resize function to OpenGL.
-*/
+///Reference to resize function. Used to pass the render object's resize function to OpenGL.
 extern void ResizeSceneWithRenderer( int aWidth, int aHeight );
-
-//SORTERS
-bool SortByObject(CMesh* a, CMesh* b);
 
 #endif

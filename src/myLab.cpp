@@ -153,9 +153,9 @@ int main(int argc, char **argv)
 	CMyRenderer::iCurrentRenderer = renderer;
 	CMyUiEvents::iCurrentUi = ui;
 
-
-
 	renderer->CreateScene();
+
+	glutFullScreen();
 
 	//START GL loop
 	glutMainLoop();

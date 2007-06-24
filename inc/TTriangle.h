@@ -15,31 +15,21 @@ class TTriangle
 	{
 	public:
 		// Constructors
-		TTriangle();
-		TTriangle( int, int, int);
-
-		// functions
-		int V1() const;
-		int V2() const;
-		int V3() const;
-
-		void setV1(int);
-		void setV2(int);
-		void setV3(int);
-
-		void reverse();
+		TTriangle(): iV1(-1), iV2(-1), iV3(-1) {};
+		TTriangle( int aV1, int aV2, int aV3): iV1(aV1), iV2(aV2), iV3(aV3) {};
+		//inline void reverse();
 
 		// Destructor
-		~TTriangle(void);
+		~TTriangle(void){};
 
-	private:
-		/** \brief First vertex indexes
-		*/
+	public:
+		///brief vertex indices
 		int iV1, iV2, iV3;
 	};
 
 //INLINE FUNCTIONS
 /// method that reverses the vertex order of the triangle
+/*
 inline
 void TTriangle::reverse(void)
 	{
@@ -47,5 +37,5 @@ void TTriangle::reverse(void)
 	this->iV1 = iV2;
 	this->iV2 = _v;
 	}
-
+*/
 #endif

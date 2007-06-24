@@ -51,9 +51,9 @@ void CMesh::calculateFaceNormals()
 	for( int i=0, j=static_cast<int>(iTriangles.size()); i<j; i++)
 		{
 		//get points
-		vx1 = this->iVertices.at( (this->iTriangles.at( i ).V1()) );
-		vx2 = this->iVertices.at( (this->iTriangles.at( i ).V2()) );
-		vx3 = this->iVertices.at( (this->iTriangles.at( i ).V3()) );
+		vx1 = this->iVertices.at( (this->iTriangles.at( i ).iV1) );
+		vx2 = this->iVertices.at( (this->iTriangles.at( i ).iV2) );
+		vx3 = this->iVertices.at( (this->iTriangles.at( i ).iV3) );
 
 		//iTriangles have been defined counter-clockwise
 		vx1 = vx2.vertex2Vector( vx1 ); //v2->v1
@@ -89,9 +89,9 @@ void CMesh::calculateVertexNormals()
 	for( int i=0, j=static_cast<int>(iTriangles.size()); i<j; i++)
 		{
 		//get vertex indices
-		a=this->iTriangles.at(i).V1();
-		b=this->iTriangles.at(i).V2();
-		c=this->iTriangles.at(i).V3();
+		a=this->iTriangles.at(i).iV1;
+		b=this->iTriangles.at(i).iV2;
+		c=this->iTriangles.at(i).iV3;
 		
 		//get the old values
 		av1 = anl.at(a);
@@ -164,6 +164,7 @@ void CMesh::subDivide(long aDepth)
 */
 void CMesh::randomColors()
 	{
+	iFaceColors.clear();
 	if(0 == iFaceColors.size() )
 		{
 		srand( clock() );
@@ -171,6 +172,23 @@ void CMesh::randomColors()
 		for( int i=0, j=static_cast<int>(iTriangles.size()); i<j; i++)
 			{
 			this->iFaceColors.push_back( a.randomColors() );
+			}
+		}
+	}
+
+/** \brief Method that calculate random colors for the color you specified
+*/
+void CMesh::randomColors( TColorRGB& aColorMult, float aBase )
+	{
+	iFaceColors.clear();
+	if(0 == iFaceColors.size() )
+		{
+		srand( clock() );
+		TColorRGB a;
+		TColorRGB baseColor = aColorMult*aBase;
+		for( int i=0, j=static_cast<int>(iTriangles.size()); i<j; i++)
+			{
+			this->iFaceColors.push_back( (aColorMult*(a.randomColors())+baseColor) );
 			}
 		}
 	}

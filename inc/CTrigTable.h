@@ -6,9 +6,9 @@
 
 //CONSTANTS
 #ifdef USE_SYMBIAN_STYLE_CONSTANTS
-#ifndef __APPLE__
-	const float pi ( 3.1415926535897932384626433832795f );	///< pi
-#endif
+//#ifndef __APPLE__
+//	const float pi ( 3.1415926535897932384626433832795f );	///< pi
+//#endif
 	const float pi2( 2*pi );		///< 2*pi
 	const float pi_div2( (pi)/2 );	///< pi/2
 	const float KDeg2Rad = 180/pi;

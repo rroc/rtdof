@@ -110,6 +110,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="2"
+				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				WholeProgramOptimization="true"
 				AdditionalIncludeDirectories="inc\"
@@ -193,10 +194,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\CTrigTable.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\ImageIO.cpp"
 				>
 			</File>
@@ -209,19 +206,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\TMatrix4.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\TMeshLoader.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\src\TTextFileHandler.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\TTriangle.cpp"
 				>
 			</File>
 		</Filter>
@@ -275,10 +264,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\inc\CTrigTable.h"
-				>
-			</File>
-			<File
 				RelativePath=".\inc\ImageIO.h"
 				>
 			</File>
@@ -296,10 +281,6 @@
 			</File>
 			<File
 				RelativePath=".\inc\TImageHandler.h"
-				>
-			</File>
-			<File
-				RelativePath=".\inc\TMatrix4.h"
 				>
 			</File>
 			<File
@@ -342,14 +323,6 @@
 			</File>
 			<File
 				RelativePath=".\shader\render.vert"
-				>
-			</File>
-			<File
-				RelativePath=".\shader\toon.frag"
-				>
-			</File>
-			<File
-				RelativePath=".\shader\toon.vert"
 				>
 			</File>
 			<File
