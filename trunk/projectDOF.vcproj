@@ -197,6 +197,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\ImageIO.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\myLab.cpp"
 				>
 			</File>
@@ -291,6 +295,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\inc\ImageIO.h"
+				>
+			</File>
+			<File
 				RelativePath=".\inc\myLab.h"
 				>
 			</File>
@@ -319,6 +327,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\inc\TTextFileHandler.h"
+				>
+			</File>
+			<File
 				RelativePath=".\inc\TTriangle.h"
 				>
 			</File>
@@ -336,6 +348,10 @@
 		<Filter
 			Name="Shader"
 			>
+			<File
+				RelativePath=".\shader\dof.frag"
+				>
+			</File>
 			<File
 				RelativePath=".\shader\toon.frag"
 				>

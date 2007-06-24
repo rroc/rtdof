@@ -41,6 +41,10 @@
 #include "CIcosahedron.h"
 #include "CBall.h"
 
+
+//CONSTANTS:
+const int KNumberOfColorMaps = 2;
+
 //CLASS DECLARATION
 
 /** \brief Rendering class.
@@ -270,7 +274,7 @@ class CMyRenderer
 
 		void InitForFrameBufferObject();
 
-		void RenderSceneOnQuad(void);
+		void RenderSceneOnQuad( int aTextureId1, int aTextureId2 );
 		void SimulateDOF();
 		void ApplyFilter(int aCocDiameter, int aX, int aY );
 
@@ -360,8 +364,9 @@ class CMyRenderer
 		float* iPixelBuffer2;
 		float* iDepthBuffer;
 		
-		GLuint iTextureID[2];
-		GLuint iFrameBufferID[1];
+		GLuint iColorMapId[KNumberOfColorMaps];
+		GLuint iFrameBufferId;
+		GLuint iDepthMapId;
 		
 
 		//OBJECT SPECIFICs

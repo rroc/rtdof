@@ -1,8 +1,6 @@
 #include "TImageHandler.h"
 
-#ifndef IMAGE_HANDLER_H
-#define IMAGE_HANDLER_H
-
+#define _CRT_SECURE_NO_DEPRECATE
 //#include <fstream>
 #include <stdio.h>
 
@@ -424,21 +422,22 @@ int TImageHandler::LoadBMP( char* aFileName, int aCurrentTextureNum )
     unsigned char *l_texture; //The pointer to the memory zone in which we will load the texture
      
     // windows.h gives us these types to work with the Bitmap files
-    WBITMAPFILEHEADER fileheader; 
-    WBITMAPINFOHEADER infoheader;
-    WRGBTRIPLE rgb;
-	
-	aCurrentTextureNum++; // The counter of the current texture is increased
+    BITMAPFILEHEADER fileheader; 
+    BITMAPINFOHEADER infoheader;
+    RGBTRIPLE rgb;
 
-	if (aFileName=='\0') return (-1);
-#ifdef _WIN32
-	if(( NULL == fopen_s( &bmpFile, aFileName, "rb"))) 
-#else
+	if (NULL == aFileName ) return (-1);
+
+
+//#ifdef _WIN32
+//	if(( NULL == fopen_s( &bmpFile, aFileName, "rb"))) 
+//#else
+
 	if((bmpFile = fopen(aFileName, "rb"))==NULL) 
-#endif
+//#endif
 		{
         //MessageBox(NULL,"Texture not found","Spacesim",MB_OK | MB_ICONERROR);
-		cout << "Texture not found.";
+		cout << "Texture not found.\n";
 		return (-1);
 		}
     fread(&fileheader, sizeof(fileheader), 1, bmpFile); // Read the fileheader
@@ -447,7 +446,7 @@ int TImageHandler::LoadBMP( char* aFileName, int aCurrentTextureNum )
     fread(&infoheader, sizeof(infoheader), 1, bmpFile); // and read the infoheader
 
     // Now we need to allocate the memory for our image (width * height * color deep)
-    l_texture = (unsigned char  *) malloc(infoheader.biWidth * infoheader.biHeight * 4);
+    l_texture = (BYTE  *) malloc(infoheader.biWidth * infoheader.biHeight * 4);
     // And fill it with zeros
     memset(l_texture, 0, infoheader.biWidth * infoheader.biHeight * 4);
  
@@ -466,6 +465,7 @@ int TImageHandler::LoadBMP( char* aFileName, int aCurrentTextureNum )
     }
     fclose(bmpFile); // Closes the file stream
      
+	aCurrentTextureNum++; // The counter of the current texture is increased
     glBindTexture(GL_TEXTURE_2D, aCurrentTextureNum); // Bind the ID texture specified by the 2nd parameter
 
     // The next commands sets the texture parameters
@@ -477,16 +477,89 @@ int TImageHandler::LoadBMP( char* aFileName, int aCurrentTextureNum )
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); // We don't combine the color with the original surface color, use only the texture map.
 
     // Finally we define the 2d texture
-    glTexImage2D(GL_TEXTURE_2D, 0, 4, infoheader.biWidth, infoheader.biHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, l_texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, infoheader.biWidth, infoheader.biHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, l_texture);
 
     // And create 2d mipmaps for the minifying function
-    gluBuild2DMipmaps(GL_TEXTURE_2D, 4, infoheader.biWidth, infoheader.biHeight, GL_RGBA, GL_UNSIGNED_BYTE, l_texture);
+//    gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA8, infoheader.biWidth, infoheader.biHeight, GL_RGBA, GL_UNSIGNED_BYTE, l_texture);
 
     free(l_texture); // Free the memory we used to load the texture
     return (aCurrentTextureNum); // Returns the current texture OpenGL ID
 	}
 
+/*
+//CPP:
 
+int TImageHandler::LoadBMP( char* aFileName, int aCurrentTextureNum )
+	{
+	cout << "Loading BMP..." << endl;
+	fstream dataFile( aFileName, ios::in | ios::binary );
+	if ( !dataFile )
+		{
+		//cerr << "File: \"" << aFileName << "\" could not be opened." << endl;
+		cout << "File: \"" << aFileName << "\" could not be opened." << endl;
+		return( false );
+		}
+	unsigned char* texture; //The pointer to the memory zone in which we will load the texture
+     
+    // windows.h gives us these types to work with the Bitmap files
+    WBITMAPFILEHEADER fileheader; 
+    WBITMAPINFOHEADER infoheader;
+    WRGBTRIPLE rgb;
+	int a =	sizeof(fileheader);
+	a =	sizeof(infoheader);
+	// Read the fileheader
+	dataFile.read( reinterpret_cast<char *>(&fileheader), sizeof(fileheader) );
+	dataFile.seekg( sizeof(fileheader), ios::beg ); // Jump the fileheader
+	dataFile.read( reinterpret_cast<char *>(&infoheader), sizeof(infoheader) );// and read the infoheader
+
+    // Now we need to allocate the memory for our image (width * height * color deep)
+    texture = new unsigned char(infoheader.biWidth*infoheader.biHeight*4);
+    
+	//And fill it with zeros
+    //memset(l_texture, 0, infoheader.biWidth * infoheader.biHeight * 4);
+ 
+	cout << "Reading: " << aFileName << "..." << endl;
+	
+	// At this point we can read every pixel of the image
+	int i(0), j(0);
+	while( !dataFile.eof() && i<infoheader.biWidth*infoheader.biHeight)
+		{
+		dataFile.read( reinterpret_cast<char *>(&rgb), sizeof(rgb) );
+		
+		// And store it
+        texture[j+0] = rgb.rgbtRed; // Red component
+        texture[j+1] = rgb.rgbtGreen; // Green component
+        texture[j+2] = rgb.rgbtBlue; // Blue component
+        texture[j+3] = 255; // Alpha value
+        j += 4; // Go to the next position
+		i++;
+		}
+	dataFile.close();
+	cout << "OK." << endl;     
+	aCurrentTextureNum++; // The counter of the current texture is increased
+
+	glBindTexture(GL_TEXTURE_2D, aCurrentTextureNum); // Bind the ID texture specified by the 2nd parameter
+
+    // The next commands sets the texture parameters
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // If the u,v coordinates overflow the range 0,1 the image is repeated
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // The magnification function ("linear" produces better results)
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST); //The minifying function
+
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); // We don't combine the color with the original surface color, use only the texture map.
+
+    // Finally we define the 2d texture
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, infoheader.biWidth, infoheader.biHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture);
+
+    // And create 2d mipmaps for the minifying function
+    gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA8, infoheader.biWidth, infoheader.biHeight, GL_RGBA, GL_UNSIGNED_BYTE, texture);
+	
+	cout << "Assigned to texture." << endl;     
+
+    delete(texture); // Free the memory we used to load the texture
+    return (aCurrentTextureNum); // Returns the current texture OpenGL ID
+	}
+*/
 
 
 
@@ -538,4 +611,3 @@ int TImageHandler::LoadBMP( char* aFileName, int aCurrentTextureNum )
 //    cout << "w";
 //	}
 
-#endif
