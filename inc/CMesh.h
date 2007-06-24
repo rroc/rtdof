@@ -51,9 +51,11 @@ class CMesh {
 	public:
 		vector<TVector3>  iVertices; /// vertex coordinates
 		vector<TTriangle> iTriangles; ///  triangle list
-		vector<TVector3>  iFaceNormals; /// normals
+		vector<TVector3>  iFaceNormals;   /// normals
 		vector<TVector3>  iVertexNormals; /// normals
 		vector<TColorRGB> iFaceColors; ///  face colors for each triangle
+
+		int iTextureId;
 	};
 
 #endif

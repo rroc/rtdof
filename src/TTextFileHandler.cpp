@@ -3,17 +3,18 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "TTextFileHandler.h"
 
-char* TTextFileHandler::TextFileRead(char *fn) 
+char* TTextFileHandler::TextFileRead(char *aFileName) 
 	{
 	FILE *fp;
 	char *content = NULL;
 
 	int count=0;
 
-	if (fn != NULL) 
+	if (aFileName != NULL) 
 		{
-		fp = fopen(fn,"rt");
+		fp = fopen(aFileName,"rt");
 	
 		if (fp != NULL) 
 			{
@@ -32,16 +33,16 @@ char* TTextFileHandler::TextFileRead(char *fn)
 		return content;
 	}
 
-int TTextFileHandler::TextFileWrite(char *fn, char *s)
+int TTextFileHandler::TextFileWrite(char *aFileName, char *aDataString)
 	{
 	FILE *fp;
 	int status = 0;
-	if (fn != NULL) 
+	if (aFileName != NULL) 
 		{
-		fp = fopen(fn,"w");
+		fp = fopen(aFileName,"w");
 		if (fp != NULL) 
 			{
-			if (fwrite(s,sizeof(char),strlen(s),fp) == strlen(s))
+			if (fwrite(aDataString,sizeof(char),strlen(aDataString),fp) == strlen(aDataString))
 				{
 				status = 1;
 				}
@@ -50,9 +51,6 @@ int TTextFileHandler::TextFileWrite(char *fn, char *s)
 		}
 	return(status);
 	}
-
-
-
 
 
 

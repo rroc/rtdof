@@ -113,6 +113,7 @@
 				FavorSizeOrSpeed="1"
 				WholeProgramOptimization="true"
 				AdditionalIncludeDirectories="inc\"
+				ExceptionHandling="1"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -125,8 +126,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="glut32.lib glew32.lib glu32.lib opengl32.lib kernel32.lib"
 				OutputFile="bin\w32\$(ProjectName).exe"
-				LinkTimeCodeGeneration="3"
+				LinkTimeCodeGeneration="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -207,10 +209,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\textfile.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\TImageHandler.cpp"
 				>
 			</File>
@@ -224,6 +222,10 @@
 			</File>
 			<File
 				RelativePath=".\src\TMeshLoader.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\TTextFileHandler.cpp"
 				>
 			</File>
 			<File
@@ -298,10 +300,6 @@
 			</File>
 			<File
 				RelativePath=".\inc\TColorRGB.h"
-				>
-			</File>
-			<File
-				RelativePath=".\inc\textfile.h"
 				>
 			</File>
 			<File

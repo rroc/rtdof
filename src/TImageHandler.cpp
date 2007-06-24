@@ -1,6 +1,7 @@
 #include "TImageHandler.h"
 
-#ifdef _ABCDEFGHIJKLMN
+#ifndef IMAGE_HANDLER_H
+#define IMAGE_HANDLER_H
 
 //#include <fstream>
 #include <stdio.h>
@@ -29,17 +30,17 @@ png_bytep* iPngRow;
 TImageHandler::TImageHandler()
 	:iX(0),iY(0)
 	{
-	iPngRows=NULL;
+//	iPngRows=NULL;
 	}
 
 TImageHandler::~TImageHandler()
 	{
-	if(0!= iPngRows)
-		{
-		for ( iY=0; iY < iHeight; iY++ )
-			free( iPngRows[iY] );
-		free(iPngRows);
-		}
+	//if(0!= iPngRows)
+	//	{
+	//	for ( iY=0; iY < iHeight; iY++ )
+	//		free( iPngRows[iY] );
+	//	free(iPngRows);
+	//	}
 
 	}
 
@@ -54,6 +55,7 @@ TImageHandler::~TImageHandler()
  */
 bool TImageHandler::LoadPNG( char* aFileName )
 	{
+/*
 	//fstream dataFile( aFileName, ios::in | ios::binary );
 	
 	// open file in C-style (as the default is in libpng)
@@ -186,6 +188,8 @@ bool TImageHandler::LoadPNG( char* aFileName )
 	png_destroy_read_struct(&iPngData, &iPngInfo, &iPngEndInfo);
 
 	return true;
+*/
+	return false;
 	}
 
 
@@ -205,6 +209,7 @@ bool TImageHandler::LoadPNG( char* aFileName )
  */
 bool TImageHandler::SavePNG( char* aFileName )
 	{
+/*
 	//fstream dataFile( aFileName, ios::in | ios::binary );
 	
 	// open file in C-style (as the default is in libpng)
@@ -296,6 +301,8 @@ bool TImageHandler::SavePNG( char* aFileName )
 	fclose(dataFile);	
 	png_destroy_write_struct(&iPngData, &iPngInfo);
 	return true;
+	*/
+	return false;
 	}
 
 
@@ -316,6 +323,8 @@ bool TImageHandler::CreatePNG( int aWidth, int aHeight)
 		free(iPngRows);
 		}
 */	
+
+/*
 	iWidth		= aWidth;  //up to 2^31
 	iHeight		= aHeight; //up to 2^31
 	iColorType	= PNG_COLOR_TYPE_RGB_ALPHA; //PNG_COLOR_TYPE_GRAY(bit depths 1, 2, 4, 8, 16) | PNG_COLOR_TYPE_GRAY_ALPHA(bit depths 8, 16) | PNG_COLOR_TYPE_PALETTE(bit depths 1, 2, 4, 8) | PNG_COLOR_TYPE_RGB(bit_depths 8, 16) | PNG_COLOR_TYPE_RGB_ALPHA(bit_depths 8, 16) | PNG_COLOR_TYPE_RGBA | PNG_COLOR_MASK_PALETTE | PNG_COLOR_MASK_COLOR | PNG_COLOR_MASK_ALPHA
@@ -345,12 +354,12 @@ bool TImageHandler::CreatePNG( int aWidth, int aHeight)
 	//(iPngRows)[3] = new png_byte;
 	//(iPngRows)[4] = new png_byte;
 
-/*	iPngRows = new png_bytep(iHeight);
-	int rowBufSize = 10; //png_get_rowbytes(read_ptr, read_info_ptr);
-	iX = rowBufSize;
-	for(iY=0; iY<(int)iHeight; iY++) 
-		(iPngRows)[iY] = new png_byte[rowBufSize];
-*/	
+//	iPngRows = new png_bytep(iHeight);
+//	int rowBufSize = 10; //png_get_rowbytes(read_ptr, read_info_ptr);
+//	iX = rowBufSize;
+//	for(iY=0; iY<(int)iHeight; iY++) 
+//		(iPngRows)[iY] = new png_byte[rowBufSize];
+	
 	
 	//iPngRows = static_cast<png_bytep>(joo);
 	//delete joo;
@@ -359,11 +368,13 @@ bool TImageHandler::CreatePNG( int aWidth, int aHeight)
 		//iPngRows[iY] = (png_byte*) malloc( iPngInfo->rowbytes );
 
 	//iPngRows = new (unsigned char)(10);
-/*	iPngRows = (png_bytep*) malloc(sizeof(png_bytep) * iHeight );
-	for ( iY=0; iY < iHeight; iY++ )
-		iPngRows[iY] = (png_byte*) malloc( aWidth );
-*/
+	//iPngRows = (png_bytep*) malloc(sizeof(png_bytep) * iHeight );
+	//for ( iY=0; iY < iHeight; iY++ )
+	//	iPngRows[iY] = (png_byte*) malloc( aWidth );
+
 	return true;
+*/
+	return false;
 	}
 
 
@@ -372,6 +383,7 @@ bool TImageHandler::CreatePNG( int aWidth, int aHeight)
 
 void TImageHandler::ModifyPNG()
 	{
+/*
 	//IF THERE IS NO IMAGE
 	if(0== iPngRows)
 		return;
@@ -400,15 +412,85 @@ void TImageHandler::ModifyPNG()
 			cout << "["<<iX<<","<<iY<<"] = "<< static_cast<short>(point[0])<<static_cast<short>(point[0])<<static_cast<short>(point[0])<<static_cast<short>(point[0]) <<"(RGBA)\n";
 			}
 		}
+*/
+	}
+
+
+
+int TImageHandler::LoadBMP( char* aFileName, int aCurrentTextureNum )
+	{
+    int i, j=0; //Index variables
+    FILE *bmpFile; //File pointer
+    unsigned char *l_texture; //The pointer to the memory zone in which we will load the texture
+     
+    // windows.h gives us these types to work with the Bitmap files
+    WBITMAPFILEHEADER fileheader; 
+    WBITMAPINFOHEADER infoheader;
+    WRGBTRIPLE rgb;
+	
+	aCurrentTextureNum++; // The counter of the current texture is increased
+
+	if (aFileName=='\0') return (-1);
+#ifdef _WIN32
+	if(( NULL == fopen_s( &bmpFile, aFileName, "rb"))) 
+#else
+	if((bmpFile = fopen(aFileName, "rb"))==NULL) 
+#endif
+		{
+        //MessageBox(NULL,"Texture not found","Spacesim",MB_OK | MB_ICONERROR);
+		cout << "Texture not found.";
+		return (-1);
+		}
+    fread(&fileheader, sizeof(fileheader), 1, bmpFile); // Read the fileheader
+    
+    fseek(bmpFile, sizeof(fileheader), SEEK_SET); // Jump the fileheader
+    fread(&infoheader, sizeof(infoheader), 1, bmpFile); // and read the infoheader
+
+    // Now we need to allocate the memory for our image (width * height * color deep)
+    l_texture = (unsigned char  *) malloc(infoheader.biWidth * infoheader.biHeight * 4);
+    // And fill it with zeros
+    memset(l_texture, 0, infoheader.biWidth * infoheader.biHeight * 4);
+ 
+    // At this point we can read every pixel of the image
+    for (i=0; i < infoheader.biWidth*infoheader.biHeight; i++)
+    {            
+            // We load an RGB value from the file
+            fread(&rgb, sizeof(rgb), 1, bmpFile); 
+
+            // And store it
+            l_texture[j+0] = rgb.rgbtRed; // Red component
+            l_texture[j+1] = rgb.rgbtGreen; // Green component
+            l_texture[j+2] = rgb.rgbtBlue; // Blue component
+            l_texture[j+3] = 255; // Alpha value
+            j += 4; // Go to the next position
+    }
+    fclose(bmpFile); // Closes the file stream
+     
+    glBindTexture(GL_TEXTURE_2D, aCurrentTextureNum); // Bind the ID texture specified by the 2nd parameter
+
+    // The next commands sets the texture parameters
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // If the u,v coordinates overflow the range 0,1 the image is repeated
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // The magnification function ("linear" produces better results)
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST); //The minifying function
+
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); // We don't combine the color with the original surface color, use only the texture map.
+
+    // Finally we define the 2d texture
+    glTexImage2D(GL_TEXTURE_2D, 0, 4, infoheader.biWidth, infoheader.biHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, l_texture);
+
+    // And create 2d mipmaps for the minifying function
+    gluBuild2DMipmaps(GL_TEXTURE_2D, 4, infoheader.biWidth, infoheader.biHeight, GL_RGBA, GL_UNSIGNED_BYTE, l_texture);
+
+    free(l_texture); // Free the memory we used to load the texture
+    return (aCurrentTextureNum); // Returns the current texture OpenGL ID
 	}
 
 
 
 
 
-//bool TImageHandler::LoadBMP( CMesh* aMesh, char* aFileName )
-//	{
-//	}
+
 
 //void readChunkCallback(png_ptr ptr, png_unknown_chunkp chunk)
 //    {
