@@ -76,7 +76,7 @@ CMyRenderer::CMyRenderer()
 	iPixelBuffer2 = new float[iScreenWidth*iScreenHeight*4];
 	iDepthBuffer  = new float[iScreenWidth*iScreenHeight];
 
-	iFBOTextureHeight = 512*(static_cast<float>(iScreenHeight)/iScreenWidth);
+	iFBOTextureHeight = static_cast<int>(512*(static_cast<float>(iScreenHeight)/iScreenWidth));
 	InitForFrameBufferObject();
 
 	}
@@ -114,7 +114,7 @@ CMyRenderer::CMyRenderer( const int aWidth, const int aHeight )
 	iPixelBuffer2 = new float[iScreenWidth*iScreenHeight*4];
 	iDepthBuffer  = new float[iScreenWidth*iScreenHeight];
 
-	iFBOTextureHeight = 512*(static_cast<float>(iScreenHeight)/iScreenWidth);
+	iFBOTextureHeight = static_cast<int>(512*(static_cast<float>(iScreenHeight)/iScreenWidth));
 	
 	InitForFrameBufferObject();
 
@@ -170,9 +170,13 @@ void CMyRenderer::InitForFrameBufferObject()
 	// similar to glReadPixels and glDrawPixels
 	// note: We're not supplying any texture image data since we're creating our own.
 	// Hence, the NULL-parameter at the end of this function
-	glTexImage2D( GL_TEXTURE_2D, KTextureLevel, GL_RGBA8, iFBOTextureWidth,
-					iFBOTextureHeight, KTextureBorder, GL_RGBA, GL_FLOAT, NULL );
-
+	
+	// NOTE TEXTURE HAS TO BE m^2!!
+	// todo: fix so ratio is ok
+	glTexImage2D( GL_TEXTURE_2D, KTextureLevel, GL_RGBA8, 512,
+					512, KTextureBorder, GL_RGBA, GL_FLOAT, NULL );
+	//
+	
 	//// set texture parameters
 	//// filtering: see page 401 red book
 	//!NOTE: linear stretching cannot be used with mipmaps
@@ -494,8 +498,8 @@ void CMyRenderer::DrawVertexNormal( TVector3 vx[], TVector3 nv[]) const
 void CMyRenderer::RenderScene()
 	{
 	//CLEAR SCREEN AMD DEPTH BUFFER
-	//glClearColor (0.0, 0.0, 0.0, 0.0);
-    //glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	glClearColor (0.0, 0.0, 0.0, 0.0);
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
 	//SET PERSPECTIVE
 	glMatrixMode( GL_PROJECTION);
@@ -527,11 +531,11 @@ void CMyRenderer::RenderScene()
 	//PREPARE THE FRAMEBUFFER OBJECT
 	glViewport( 0,0, iFBOTextureWidth, iFBOTextureHeight );
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, iFrameBufferID[0]);	
-//	glClearColor (0.0, 1.0, 0.0, 0.0);
+////	glClearColor (0.0, 1.0, 0.0, 0.0);
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
-
-	//DRAW THE WHOLE SCENE (ALL OBJECTS)
+//
+//
+//	//DRAW THE WHOLE SCENE (ALL OBJECTS)
 	glUseProgram(iShaderProgramId);
 	DrawSceneNode( iScene );
 	glUseProgram(0);
@@ -561,7 +565,7 @@ void CMyRenderer::RenderScene()
 	glViewport( 0,0, iScreenWidth, iScreenHeight );
 
 
-	//glGenerateMipmapEXT( GL_TEXTURE_2D );
+//	glGenerateMipmapEXT( GL_TEXTURE_2D );
 
 	//Render a quad with the pre-rendered scene as a texture
 	RenderSceneOnQuad();
@@ -724,12 +728,12 @@ void CMyRenderer::ModifyPixels()
 
 				//Calculate the circle of confusion:
 				//cocDiameter = 30*pixelDepth;//pixelDepth; //abs(  aperture * ( relativeLensPosition*( 1.0f/focalLength - 1.0f/pixelDepth)-1) );
-				cocDiameter = 2.0f+abs(  aperture * ( relativeLensPosition*( 1.0f/focalLength - 1.0f/pixelDepth)-1) );
+				cocDiameter = 2.0f+fabsf(  aperture * ( relativeLensPosition*( 1.0f/focalLength - 1.0f/pixelDepth)-1) );
 				//cocDiameter = (1-pdOrig)*5+abs(  aperture * ( relativeLensPosition*( 1.0f/focalLength - 1.0f/pixelDepth)-1) );
 				//cocDiameter = abs(  aperture * ( pow(relativeLensPosition*( (1.0f/focalLength)-(1.0f/(pixelDepth))-1),2) ));
 
 				//Apply the filter accordingly:
-				ApplyFilter(cocDiameter, x, y );
+				ApplyFilter(static_cast<int>(cocDiameter), x, y );
 				}
 			}
 		}
@@ -995,7 +999,7 @@ void CMyRenderer::ResizeScene(const int aWidth, const int aHeight)
 	int min = (iScreenHeight<iScreenWidth)?iScreenHeight:iScreenWidth;
 	int max = (iScreenHeight<iScreenWidth)?iScreenWidth:iScreenHeight;
 	max = (max<1)? 1:max;
-	min = 512*((static_cast<float>(min))/max);
+	min = static_cast<int>(512*((static_cast<float>(min))/max));
 	min = (min>512)? 512:min;
 	max = (max>512)? 512:max;
 	

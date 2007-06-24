@@ -9,7 +9,7 @@ const float KAngleChangeAmount = 0.001f;
 const float KAngleChangeAmount = 0.05f;
 #endif
 
-const float KScaleChangeAmount = 0.005f;
+const float KScaleChangeAmount = 1.0f;
 
 //INIT STATIC DATA
 CMyUiEvents* CMyUiEvents::iCurrentUi = 0;

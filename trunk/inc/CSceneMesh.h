@@ -1,6 +1,11 @@
 #ifndef CSCENE_MESH_H
 #define CSCENE_MESH_H
 
+#ifdef __APPLE__
+#include <assert.h>
+#define _ASSERT(x) assert(x)
+#endif
+
 
 #include "Basic.h"
 #include "CMesh.h"
@@ -27,7 +32,7 @@ class CSceneMesh : public CSceneNode
 		//PUBLIC METHODS
 		CMesh*	GetMesh()const { return *iObjectMesh;};
 		void	SetMesh( CMesh** aMesh )
-					{ 
+					{
 					_ASSERT( *aMesh != NULL );
 					iObjectMesh = aMesh;
 					};
