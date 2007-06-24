@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="8,00"
 	Name="projectDOF"
-	ProjectGUID="{26EA6F15-BA4E-45E3-9EBF-002045DEB968}"
+	ProjectGUID="{2F77CEAD-9B46-449A-9EE3-5E98CD500394}"
 	>
 	<Platforms>
 		<Platform
@@ -37,8 +37,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="inc\"
-				DebugInformationFormat="4"
+				AdditionalIncludeDirectories="&quot;C:\Documents and Settings\Johannes\My Documents\Visual Studio 2005\Projects\projectDOF\inc&quot;"
+				DebugInformationFormat="1"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -51,9 +51,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="bin\w32\$(ProjectName)_debug.exe"
 				GenerateDebugInformation="true"
-				GenerateMapFile="true"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -85,7 +83,6 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			WholeProgramOptimization="3"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -106,8 +103,7 @@
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="2"
 				FavorSizeOrSpeed="1"
-				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="inc\"
+				AdditionalIncludeDirectories="&quot;C:\Documents and Settings\Johannes\My Documents\Visual Studio 2005\Projects\projectDOF\inc&quot;"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -120,8 +116,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="bin\w32\$(ProjectName).exe"
-				LinkTimeCodeGeneration="3"
+				LinkTimeCodeGeneration="1"
 			/>
 			<Tool
 				Name="VCALinkTool"

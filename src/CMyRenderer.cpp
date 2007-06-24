@@ -15,7 +15,7 @@
 const int KScreenWidth = 480; ///< Default screen width  ( = PSP's screen width)
 const int KScreenHeight= 272; ///< Default screen height ( = PSP's screen height)
 const float KZNear	= 10.0f;
-const float KZFar	= 60.0f;
+const float KZFar	= 40.0f;
 
 //INIT STATIC DATA
 CMyRenderer* CMyRenderer::iCurrentRenderer = 0;
@@ -137,12 +137,15 @@ void CMyRenderer::CreateScene()
 	meshObject->calculateVertexNormals();
 	meshObject->randomColors();
 
-	TVector3 transInit = TVector3(0, -2, -13 );
+	TVector3 transInit = TVector3(-2, -2, -8 );
 
 	//TVector3 transPerObject = TVector3(0.7, 0.7, -0.7);
-	TVector3 transPerObject = TVector3(0.7, 0.7, -0.8);
-	TVector3 rotXY =  TVector3(1, 0, 0 );
-	float rotAngle = 45;
+	TVector3 transPerObject = TVector3(0.1, 0.1, -5.0f);
+	TVector3 rotXY =  TVector3(-1, 0, 0 );
+	float rotAngle = 40;
+
+	TVector3 rotXY2 =  TVector3(0, 1, 0 );
+	float rotAngle2 = -35;
 
 
 	CSceneNode* mNodes[5];
@@ -150,13 +153,19 @@ void CMyRenderer::CreateScene()
 	//CSceneRotation* rNodes[5];
 	mNodes[0] = new CSceneNode( meshObject );
 
-	iRootRot = new CSceneRotation( rotXY, 40 );
+	iRootRot = new CSceneRotation( rotXY, rotAngle );
+	CSceneRotation* rootRot2 = new CSceneRotation( rotXY2, rotAngle2 );
+
+
+
 
 	CSceneNode* currentNode = iScene;
 	//R*T
 	currentNode = currentNode->addChild( new CSceneTranslation( transInit ) );
 
 	currentNode = currentNode->addChild( iRootRot );
+	currentNode = currentNode->addChild( rootRot2 );
+
 	currentNode = currentNode->addChild( mNodes[0] );
 
 
@@ -168,7 +177,7 @@ void CMyRenderer::CreateScene()
 		iSceneRotations.push_back(new CSceneRotation( rotXY, rotAngle ));
 
 		currentNode = currentNode->addChild( tNodes[i] );
-		currentNode = currentNode->addChild( iSceneRotations.at( iSceneRotations.size()-1) );//rNodes[i] ); //rNodes[i];
+		//currentNode = currentNode->addChild( iSceneRotations.at( iSceneRotations.size()-1) );//rNodes[i] ); //rNodes[i];
 		currentNode = currentNode->addChild( mNodes[i] );
 		}
 
@@ -443,6 +452,7 @@ void CMyRenderer::RenderScene()
 	{
 	//Clear screen amd depth buffer
 	glClear( GL_COLOR_BUFFER_BIT |GL_DEPTH_BUFFER_BIT );
+	glReadPixels( 0,0, iScreenWidth, iScreenHeight, GL_RGBA, GL_FLOAT, iPixelBuffer2 );
 
 	glMatrixMode( GL_PROJECTION);
 	glLoadIdentity();
@@ -480,6 +490,12 @@ void CMyRenderer::RenderScene()
 
 	if(iAxisDrawn) DrawAxisMark( 0, 0, 0, 0.1 );
 
+
+
+	glFlush(); // This force the execution of OpenGL commands
+
+	SimulateDOF();
+
 #ifdef USE_FPS_LIMIT
 	//framerate limiter
 	while(glutGet(GLUT_ELAPSED_TIME)-iPreviousTime < 30);
@@ -488,10 +504,6 @@ void CMyRenderer::RenderScene()
 	FramesPerSec();
 	DrawText();
 #endif
-
-	glFlush(); // This force the execution of OpenGL commands
-
-	SimulateDOF();
 
 	//Swap to screen
 	glutSwapBuffers();
@@ -521,37 +533,94 @@ void CMyRenderer::SimulateDOF()
 
 	//Set the reading buffer
 	glReadBuffer( GL_BACK );
-	const int width=200;
-	const int height=150;
+
+//	const int width=200;
+//	const int height=150;
 	//float pixelBuffer[height*width*4];
 	//float depthBuffer[height*width];
-	glReadPixels( 350,250, width, height, GL_RGBA, GL_FLOAT, iPixelBuffer1);
-	glReadPixels( 350,250, width, height, GL_DEPTH_COMPONENT, GL_FLOAT, iDepthBuffer);
+
+	glReadPixels( 0,0, iScreenWidth, iScreenHeight, GL_RGBA, GL_FLOAT, iPixelBuffer1 );
+	//glReadPixels( 0,0, iScreenWidth, iScreenHeight, GL_RGBA, GL_FLOAT, iPixelBuffer2 );
+	glReadPixels( 0,0, iScreenWidth, iScreenHeight, GL_DEPTH_COMPONENT, GL_FLOAT, iDepthBuffer);
 	
 	//Modify Pixels according to depth
 	float z;
-	float cocDiameter = 1.0f;
-	for(int y=0; y<height; y++)
+	//float cocDiameter = 20.0f;
+
+	float cocDiameter(5.0f);
+	float aperture     = 0.100f; //2.8f;
+	float focalLength  = 0.750f; //1.0f;
+	float planeOfFocus = 4; //0.971; //KZFar;//10.0f;
+
+	for(int y=(0+cocDiameter); y<iScreenHeight-cocDiameter; y++)
 		{
-		for(int x=0; x<width; x++)
+		for(int x=0+cocDiameter; x<iScreenWidth-cocDiameter; x++)
 			{
 			z = *(iDepthBuffer+(y*iScreenWidth)+x) ;
 			z = (KZNear*KZFar)/(KZFar- (z*(KZFar-KZNear)) );
-			ApplyFilter(cocDiameter, x, y );
+			if(KZFar!=z)
+				{
+				//cocDiameter = 40*z;
+
+				cocDiameter = abs(  aperture - 3.3*(planeOfFocus*(1.0f/focalLength - 1.0f/z)-1) );
+	//			//cocDiameter = abs(  aperture - 3.3*(planeOfFocus*(1 - (1.0f/z))-1) );
+				ApplyFilter(cocDiameter, x, y );
+				}
 			}
 		}
-
 	//Write back to the buffer
 	glDrawBuffer( GL_BACK );
 	glRasterPos2i( 0, 0 );
-	glDrawPixels( width, height, GL_RED, GL_FLOAT, iDepthBuffer);
-
+	//glDrawPixels( iScreenWidth, iScreenHeight, GL_BLUE, GL_FLOAT, iPixelBuffer1);
+	glDrawPixels( iScreenWidth, iScreenHeight, GL_RGBA, GL_FLOAT, iPixelBuffer2);
 	glFlush();
 	}
 
-void CMyRenderer::ApplyFilter(cocDiameter, x, y )
+void CMyRenderer::ApplyFilter(int aCocDiameter, int aX, int aY )
 	{
-	//do stuff
+	//const int width=200;
+	//const int height=150;
+
+	float radius = aCocDiameter/2;
+	float area   = pi*(radius*radius); //area of a circle
+
+	//Get original pixel
+	TColorRGB pixel( 
+					*(iPixelBuffer1+(aY*iScreenWidth*4)+4*aX  ), 
+					*(iPixelBuffer1+(aY*iScreenWidth*4)+4*aX+1), 
+					*(iPixelBuffer1+(aY*iScreenWidth*4)+4*aX+2), 
+					*(iPixelBuffer1+(aY*iScreenWidth*4)+4*aX+3) 
+					);
+	//Calculate intensity
+	TColorRGB intensity = pixel/area;
+
+	
+
+	////Applying filter
+	int radiusInt = static_cast<int>(radius);
+
+	int pixelX, pixelY;
+	int screenX = ( aX-radiusInt <0 )? radiusInt: aX;
+	int screenY = ( aY-radiusInt <0 )? radiusInt: aY;
+	screenX = ( aX+radiusInt >iScreenWidth )?  iScreenWidth-radiusInt:  screenX;
+	screenY = ( aY+radiusInt >iScreenHeight )? iScreenHeight-radiusInt: screenY;
+
+	for(int y= (-radiusInt); y<(radiusInt); y++)
+		{
+		for(int x=(-radiusInt); x<(radiusInt); x++)
+			{
+			//making circular filter
+			if( sqrt( static_cast<float>(x*x+y*y)) < radius )
+				{
+				pixelX=(screenX-x);
+				pixelY=(screenY-y);
+				*(iPixelBuffer2+(pixelY*iScreenWidth*4)+4*pixelX  ) += intensity.getR();
+				*(iPixelBuffer2+(pixelY*iScreenWidth*4)+4*pixelX+1) += intensity.getG();
+				*(iPixelBuffer2+(pixelY*iScreenWidth*4)+4*pixelX+2) += intensity.getB();
+				*(iPixelBuffer2+(pixelY*iScreenWidth*4)+4*pixelX+3) = pixel.getA();
+				}
+			}
+		}
 	}
 
 

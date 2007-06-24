@@ -258,7 +258,7 @@ class CMyRenderer
 		void SetRotAngles( const TAngles& aAngles ){iRotAnglesChange=TAngles(aAngles);}
 
 		void SimulateDOF();
-		void ApplyFilter(cocDiameter, x, y );
+		void ApplyFilter(int aCocDiameter, int aX, int aY );
 
 	//PRIVATE METHODS
 	private:
