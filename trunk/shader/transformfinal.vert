@@ -11,6 +11,7 @@ void main(void)
    vTexCoord.x = 0.5 * (1.0 + Pos.x);
    vTexCoord.y = 0.5 * (1.0 + Pos.y);
 */
+
 	vTexCoord = gl_MultiTexCoord0.st; //gl_Vertex.xy;
 	gl_Position = gl_Vertex;
 	//gl_TexCoord[0] = gl_MultiTexCoord0;

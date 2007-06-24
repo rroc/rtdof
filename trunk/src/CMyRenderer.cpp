@@ -125,7 +125,7 @@ CMyRenderer::CMyRenderer( const int aWidth, const int aHeight )
 #ifdef USE_SHADER
 	SetShaders( iShaderProgramId[0], "shader/render.vert", "shader/render.frag" );
 	SetShaders( iShaderProgramId[1], "shader/transform.vert", "shader/blur.frag" );
-	SetShaders( iShaderProgramId[2], "shader/transformfinal.vert", "shader/combine.frag" );
+	SetShaders( iShaderProgramId[2], "shader/transform.vert", "shader/combine.frag" );
 #endif
 	}
 
@@ -306,7 +306,7 @@ void CMyRenderer::CreateScene()
 		iMeshList.at(i)->randomColors();
 		}
 	iMeshList.at(0)->setSolidColor(0.8f,0.8f,1.0f);
-	iMeshList.at(iMeshList.size()-1)->setSolidColor(0.8f,0.8f,1.0f);
+	iMeshList.at(iMeshList.size()-1)->setSolidColor(0.5f,0.8f,1.0f);
 	iSceneMesh = iMeshList.at(1);
 
 
@@ -319,7 +319,7 @@ void CMyRenderer::CreateScene()
 	CSceneNode* currentNode = iScene; 
 
 	//INITIAL TRANSFORMATION
-	currentNode = currentNode->addChild( new CSceneTranslation( TVector3(0,0,-10-(KZNear+size)) ) );
+	currentNode = currentNode->addChild( new CSceneTranslation( TVector3(0,-5,-20-(KZNear+size)) ) );
 	//INITIAL ROTATION
 	iRootRot = new CSceneRotation( TAngles(10,20,0) );
 	currentNode = currentNode->addChild( iRootRot );
@@ -567,17 +567,21 @@ void CMyRenderer::DrawVertexNormal( TVector3 vx[], TVector3 nv[]) const
 void CMyRenderer::RenderScene()
 	{
 	iPolyCount=0;
+	int	loc(0);
+
+	//To store the alpha values
+	//glEnable (GL_BLEND);
 
 	//SET PERSPECTIVE
 	glMatrixMode( GL_PROJECTION);
 	glLoadIdentity();
-	//gluPerspective( 45.0f, iFBOTextureWidth/iFBOTextureHeight, KZNear, KZFar);
 	gluPerspective( 45.0f, iScreenWidth/iScreenHeight, KZNear, KZFar);
+	glEnable(GL_DEPTH_TEST);
 
 	//Rest is for the models...
 	glMatrixMode( GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt (0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+	gluLookAt(70.0, 3.0, -60.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
 	//CHANGE OBJECT IF NEEDED
 	iMeshIndex = (iMeshIndex<0)?iMeshList.size()-1:iMeshIndex;
@@ -609,7 +613,6 @@ void CMyRenderer::RenderScene()
 	gluUnProject( viewport[2], viewport[3], 0.0, mvmatrix, projmatrix, viewport, &x, &y, &z);
 */
 
-
 #ifdef USE_FBO
 	//PREPARE THE FRAMEBUFFER OBJECT
 	glViewport( 0,0, KTextureWidth, KTextureHeight );
@@ -621,25 +624,26 @@ void CMyRenderer::RenderScene()
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
 #ifdef USE_SHADER	//ENABLE SHADER PROGRAM 0
-
 	glUseProgram(iShaderProgramId[0]);
-	int loc;
+	loc;
 	loc = glGetUniformLocation( iShaderProgramId[0], "distanceScale" );
-	glUniform1f( loc, 1.340f );
+	glUniform1f( loc, 0.0140f );
 	loc = glGetUniformLocation( iShaderProgramId[0], "Ks" );
 	glUniform1f( loc, 0.94 );
 	loc = glGetUniformLocation( iShaderProgramId[0], "Kd" );
 	glUniform1f( loc, 0.96 );
-
 #endif
 
+
+//------------------------------------------------
+//	REAL SCENE
 //------------------------------------------------
 	//DRAW LANDSCAPE
 	iMesh = iMeshList.at(iMeshList.size()-1);
 	if(NULL!=iMesh)
 		{
 		glLoadIdentity();
-		glTranslatef( -15.0, 0.0, -50-(KZNear) );
+		glTranslatef( 1.0, -20.0, -250-(KZNear) );
 		RenderPipeLine( );
 		glLoadIdentity();
 		}
@@ -647,10 +651,6 @@ void CMyRenderer::RenderScene()
 	DrawSceneNode( iScene );
 	glFlush();
 //------------------------------------------------
-
-
-
-
 
 
 
@@ -672,7 +672,6 @@ void CMyRenderer::RenderScene()
 	RenderSceneOnQuad( 0, -1, KTextureWidth, KTextureHeight  );
 #endif
 
-
 // APPLYING THE SECOND BLUR...
 #ifdef USE_FBO
 	//PREPARE THE FRAMEBUFFER OBJECT
@@ -693,12 +692,11 @@ void CMyRenderer::RenderScene()
 
 
 // COMBINING THE SHARP IMAGE AND THE SECOND BLUR...
-#ifdef USE_FBO
-
+//#ifdef USE_FBO
 #ifdef USE_SHADER	//ENABLE SHADER PROGRAM 2
 	glUseProgram(iShaderProgramId[2]);
 	loc = glGetUniformLocation( iShaderProgramId[2], "range" );
-	glUniform1f( loc, 4.9f );
+	glUniform1f( loc, 8.9f );
 	loc = glGetUniformLocation( iShaderProgramId[2], "focus" );
 	glUniform1f( loc, 0.45f );
 	loc = glGetUniformLocation( iShaderProgramId[2], "RT" );
@@ -707,23 +705,15 @@ void CMyRenderer::RenderScene()
 	glUniform1i( loc, 1 );
 #endif
 
-	//glUseProgram(0);
-
-	//glDisable( GL_LIGHTING );
-	//glDisable( GL_CULL_FACE );
-	//glDisable( GL_DEPTH_TEST );
-
+	//NOW DRAW TO THE SCREEN
 	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, KWindowSystemFrameBuffer );
 	
 	glViewport( 0,0, iScreenWidth, iScreenHeight );
 	glMatrixMode( GL_PROJECTION );
 	glLoadIdentity();
-	gluOrtho2D( 0.0f, iScreenWidth, 0.0f, iScreenHeight );
+	//gluOrtho2D( 0.0f, iScreenWidth, 0.0f, iScreenHeight );
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
-
-
-	//glViewport( -400, -400, iScreenWidth, iScreenHeight  );
 
 	//PREPARE THE SCREENBUFFER
 	glDrawBuffer( GL_BACK );
@@ -731,41 +721,34 @@ void CMyRenderer::RenderScene()
 	//CLEAR SCREEN AMD DEPTH BUFFER
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-	//Render a quad with the pre-rendered scene as a texture
-//	RenderSceneOnQuad( 1, -1, iScreenWidth, iScreenHeight );
-
-	//glMatrixMode( GL_PROJECTION );
-	//glLoadIdentity();
-	//gluOrtho2D( 0.0f, iScreenWidth, 0.0f, iScreenHeight );
-	//glMatrixMode( GL_MODELVIEW );
-	//glLoadIdentity();
-
 	glEnable( GL_TEXTURE_2D );
 	glActiveTexture( GL_TEXTURE0 );
 	glBindTexture( GL_TEXTURE_2D, iColorMapId[0] );
+	//glBindTexture( GL_TEXTURE_2D, iDepthMapId );
 
 	glActiveTexture( GL_TEXTURE1 );
 	glBindTexture( GL_TEXTURE_2D, iColorMapId[2] );
 
-	//RENDER MULTITEXTURE ON QUAD
+//	glutWireSphere(1,20,16);
+
 	glBegin(GL_QUADS);
 		glMultiTexCoord2f( GL_TEXTURE0, 0, 0 );
 		glMultiTexCoord2f( GL_TEXTURE1, 0, 0 );
-		glVertex2i( 0, 0 );
+		glVertex2i( -1, -1 );
 		glMultiTexCoord2f( GL_TEXTURE0, 1, 0 );
 		glMultiTexCoord2f( GL_TEXTURE1, 1, 0 );
-		glVertex2i( iScreenWidth, 0 );
+		glVertex2i( 1, -1 );
 		glMultiTexCoord2f( GL_TEXTURE0, 1, 1 );
 		glMultiTexCoord2f( GL_TEXTURE1, 1, 1 );
-		glVertex2i( iScreenWidth, iScreenHeight );
+		glVertex2i( 1, 1 );
 		glMultiTexCoord2f( GL_TEXTURE0, 0, 1 );
 		glMultiTexCoord2f( GL_TEXTURE1, 0, 1 );
-		glVertex2i( 0, iScreenHeight );
+		glVertex2i( -1, 1 );
 	glEnd();
 
 	glFlush();	
 	glDisable( GL_TEXTURE_2D );
-#endif
+//#endif
 
 //DISABLE SHADER PROGRAM WHEN WRITING FPS ON THE SCREEN!
 #ifdef USE_SHADER	
