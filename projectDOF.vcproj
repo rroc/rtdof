@@ -4,6 +4,7 @@
 	Version="8,00"
 	Name="projectDOF"
 	ProjectGUID="{2F77CEAD-9B46-449A-9EE3-5E98CD500394}"
+	RootNamespace="projectDOF"
 	>
 	<Platforms>
 		<Platform
@@ -109,12 +110,13 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="0"
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
-				WholeProgramOptimization="true"
 				AdditionalIncludeDirectories="inc\"
 				ExceptionHandling="1"
+				DebugInformationFormat="1"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -129,6 +131,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="glut32.lib glew32.lib glu32.lib opengl32.lib kernel32.lib"
 				OutputFile="bin\w32\$(ProjectName).exe"
+				GenerateDebugInformation="true"
 				LinkTimeCodeGeneration="1"
 			/>
 			<Tool
