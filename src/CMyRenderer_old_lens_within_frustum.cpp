@@ -518,7 +518,7 @@ void CMyRenderer::RenderScene()
 void CMyRenderer::SimulateDOF()
 	{
 	//Read pixels from the buffer
-	
+
 	//configure the transforms for 2D
 	glMatrixMode( GL_PROJECTION);
 	glLoadIdentity();
@@ -541,7 +541,7 @@ void CMyRenderer::SimulateDOF()
 	glReadPixels( 0,0, iScreenWidth, iScreenHeight, GL_RGBA, GL_FLOAT, iPixelBuffer1 );
 	//glReadPixels( 0,0, iScreenWidth, iScreenHeight, GL_RGBA, GL_FLOAT, iPixelBuffer2 );
 	glReadPixels( 0,0, iScreenWidth, iScreenHeight, GL_DEPTH_COMPONENT, GL_FLOAT, iDepthBuffer);
-	
+
 	//Modify Pixels according to depth
 
 	float pixelDepth; //d  (from z-buffer)
@@ -552,7 +552,7 @@ void CMyRenderer::SimulateDOF()
 
 
 	//DEPTH SPACE
-	float focalLength  = 0.05f; // f; 
+	float focalLength  = 0.05f; // f;
 	float relativeLensPosition = 0.1f; //s
 
 //	float value = pixelDepth = *(iDepthBuffer+(300*iScreenWidth)+400);
@@ -577,7 +577,7 @@ void CMyRenderer::SimulateDOF()
 			else
 				{
 				//from pixel depth to depth ( pd -> d )
-				pixelDepth -= relativeLensPosition; 
+				pixelDepth -= relativeLensPosition;
 
 				//Check if the object is too near the lens
 				pixelDepth = (pixelDepth < focalLength)? focalLength : pixelDepth;
@@ -617,15 +617,15 @@ void CMyRenderer::ApplyFilter(int aCocDiameter, int aX, int aY )
 	float area   = pi*(radius*radius); //area of a circle
 
 	//Get original pixel
-	TColorRGB pixel( 
-					*(iPixelBuffer1+(aY*iScreenWidth*4)+4*aX  ), 
-					*(iPixelBuffer1+(aY*iScreenWidth*4)+4*aX+1), 
-					*(iPixelBuffer1+(aY*iScreenWidth*4)+4*aX+2), 
-					*(iPixelBuffer1+(aY*iScreenWidth*4)+4*aX+3) 
+	TColorRGB pixel(
+					*(iPixelBuffer1+(aY*iScreenWidth*4)+4*aX  ),
+					*(iPixelBuffer1+(aY*iScreenWidth*4)+4*aX+1),
+					*(iPixelBuffer1+(aY*iScreenWidth*4)+4*aX+2),
+					*(iPixelBuffer1+(aY*iScreenWidth*4)+4*aX+3)
 					);
 	//Calculate intensity
 	TColorRGB intensity = pixel/area;
-	
+
 
 	////Applying filter
 	int radiusInt = static_cast<int>(radius);
@@ -693,7 +693,7 @@ void CMyRenderer::DrawSceneNode( CSceneNode* aNode )
 				{
 				//glScalef( iScale );
 				//glutSolidSphere (1.0, 20, 16);
-				RenderPipeLine( );
+				RenderObject( );
 
 				//Object center
 				if(iAxisDrawn)
@@ -748,7 +748,7 @@ void CMyRenderer::DrawSceneNode( CSceneNode* aNode )
 
 
 
-void CMyRenderer::RenderPipeLine( )
+void CMyRenderer::RenderObject( )
 	{
 	//===============================
 	// RENDERING PIPELINE

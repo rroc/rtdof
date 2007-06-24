@@ -13,7 +13,6 @@
 #include "TAngles.h"
 #include "TMatrix4.h"
 #include "TColorRGB.h"
-#include "TLight.h"
 
 #ifdef USE_SIN_TABLE
 #include "CTrigTable.h"
