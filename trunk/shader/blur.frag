@@ -1,22 +1,7 @@
-uniform float sampleDist0;
+uniform float sampleDist;
 uniform sampler2D RT;
+
 varying vec2 vTexCoord;
-/*
-const vec2 samples[12] = {
-   -0.326212, -0.405805,
-   -0.840144, -0.073580,
-   -0.695914,  0.457137,
-   -0.203345,  0.620716,
-    0.962340, -0.194983,
-    0.473434, -0.480026,
-    0.519456,  0.767022,
-    0.185461, -0.893124,
-    0.507431,  0.064425,
-    0.896420,  0.412458,
-   -0.321940, -0.932615,
-   -0.791559, -0.597705,
-};
-*/
 
 void main(void)
 {
@@ -32,6 +17,8 @@ void main(void)
    vec2 samples09 = vec2( 0.896420,  0.412458);
    vec2 samples10 = vec2(-0.321940, -0.932615);
    vec2 samples11 = vec2(-0.791559, -0.597705);
+   
+   // vTexCoord = gl_TexCoord[0].st;
 
    vec2 newCoord;
    vec4 sum = texture2D(RT, vTexCoord);
@@ -39,47 +26,47 @@ void main(void)
    /*
    for (int i = 0; i < 12; i++)
    {
-      sum += tex2D(RT, texCoord + sampleDist0 * samples[i]);
+      sum += tex2D(RT, texCoord + sampleDist * samples[i]);
    }
    */
    
-   newCoord = vTexCoord + sampleDist0 * samples00;
+   newCoord = vTexCoord + sampleDist * samples00;
    sum += texture2D(RT, newCoord);
 
-   newCoord = vTexCoord + sampleDist0 * samples01;
+   newCoord = vTexCoord + sampleDist * samples01;
    sum += texture2D(RT, newCoord);
 
-   newCoord = vTexCoord + sampleDist0 * samples02;
+   newCoord = vTexCoord + sampleDist * samples02;
    sum += texture2D(RT, newCoord);
 
-   newCoord = vTexCoord + sampleDist0 * samples03;
+   newCoord = vTexCoord + sampleDist * samples03;
    sum += texture2D(RT, newCoord);
    
-   newCoord = vTexCoord + sampleDist0 * samples04;
+   newCoord = vTexCoord + sampleDist * samples04;
    sum += texture2D(RT, newCoord);
 
-   newCoord = vTexCoord + sampleDist0 * samples05;
+   newCoord = vTexCoord + sampleDist * samples05;
    sum += texture2D(RT, newCoord);
 
-   newCoord = vTexCoord + sampleDist0 * samples06;
+   newCoord = vTexCoord + sampleDist * samples06;
    sum += texture2D(RT, newCoord);
 
-   newCoord = vTexCoord + sampleDist0 * samples07;
+   newCoord = vTexCoord + sampleDist * samples07;
    sum += texture2D(RT, newCoord);
 
-   newCoord = vTexCoord + sampleDist0 * samples08;
+   newCoord = vTexCoord + sampleDist * samples08;
    sum += texture2D(RT, newCoord);
    
-   newCoord = vTexCoord + sampleDist0 * samples09;
+   newCoord = vTexCoord + sampleDist * samples09;
    sum += texture2D(RT, newCoord);
 
-   newCoord = vTexCoord + sampleDist0 * samples10;
+   newCoord = vTexCoord + sampleDist * samples10;
    sum += texture2D(RT, newCoord);
 
-   newCoord = vTexCoord + sampleDist0 * samples11;
+   newCoord = vTexCoord + sampleDist * samples11;
    sum += texture2D(RT, newCoord);
 
    sum /= 13.0;
 
-   gl_FragColor = vec4( sum);
+   gl_FragColor = sum; //vec4( 1.0, 1.0, 1.0, 1.0); // sum );
 }

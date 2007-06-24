@@ -3,7 +3,7 @@ varying vec2 vTexCoord;
 void main(void)
 {
 /*
-   // Clean up inaccuracies
+    // Clean up inaccuracies
    vec2 Pos = sign(gl_Vertex.xy);
 
    gl_Position = vec4(Pos.xy, 0, 1);

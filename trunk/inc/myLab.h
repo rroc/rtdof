@@ -8,6 +8,8 @@
 #define USE_OPENGL_RENDERER
 //#define USE_VERTEX_ARRAYS
 #define USE_SYMBIAN_STYLE_CONSTANTS
+#define USE_FBO
+#define USE_SHADER
 
 //OPENGL uses degrees...
 #ifdef USE_OPENGL_RENDERER
