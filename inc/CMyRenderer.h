@@ -335,7 +335,10 @@ class CMyRenderer
 		void CMyRenderer::ModifyPixels();
 
 		TColorRGB CalculateALight( TVector3 aNormalVector, TColorRGB aObjectColor );
-
+		
+		void CheckFrameBufferStatus();
+		bool VerifyShaderCompilation( int aShaderId );
+		bool VerifyShaderProgram( int aShaderProgramId );
 
 	//PUBLIC STATIC DATA
 	public:

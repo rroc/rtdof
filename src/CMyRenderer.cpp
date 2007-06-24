@@ -149,7 +149,7 @@ CMyRenderer::~CMyRenderer()
 		delete [] iDepthBuffer;
 	
 	// remove the two textures and the framebuffer object
-	glDeleteTextures(1, iTextureID);
+	glDeleteTextures(2, iTextureID);
 	glDeleteFramebuffersEXT(1, iFrameBufferID);
 
 #ifdef USE_SIN_TABLE
@@ -159,13 +159,30 @@ CMyRenderer::~CMyRenderer()
 
 void CMyRenderer::InitForFrameBufferObject()
 	{
-	int result = glGetError();
 	// get two texture identifiers that have not yet been used
-	glGenTextures ( 1, iTextureID );
+	glGenTextures ( 2, iTextureID );
 
-	// create & assign the first texture
+	
+	//create the color texture
+	//------------------------
 	glBindTexture( GL_TEXTURE_2D, iTextureID[0] );
-
+	
+	//// set texture parameters
+	//// filtering: see page 401 red book
+	//!NOTE: linear stretching cannot be used with mipmaps
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+	//glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+	
+	//// wrapping: see page 417 red book
+	//// texture(s,t,r,q) equal to vertex(x, y, z, w)
+	//// so in this case we're setting the wrap-parameters for the x direction
+	//// and the y direction
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+  
+	glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
+	
 	// set up the Texture size, type, format,...
 	// similar to glReadPixels and glDrawPixels
 	// note: We're not supplying any texture image data since we're creating our own.
@@ -173,35 +190,53 @@ void CMyRenderer::InitForFrameBufferObject()
 	
 	// NOTE TEXTURE HAS TO BE m^2!!
 	// todo: fix so ratio is ok
-	glTexImage2D( GL_TEXTURE_2D, KTextureLevel, GL_RGBA8, 512,
-					512, KTextureBorder, GL_RGBA, GL_FLOAT, NULL );
-	//
+	glTexImage2D( GL_TEXTURE_2D, KTextureLevel, GL_RGBA8, 512, 512, KTextureBorder, GL_RGBA, GL_FLOAT, NULL );
 	
-	//// set texture parameters
-	//// filtering: see page 401 red book
-	//!NOTE: linear stretching cannot be used with mipmaps
+	
+	//create the depth texture
+	//------------------------
+	glBindTexture( GL_TEXTURE_2D, iTextureID[1] );
+
+	// set texture parameters
 	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-
-	//// wrapping: see page 417 red book
-	//// texture(s,t,r,q) equal to vertex(x, y, z, w)
-	//// so in this case we're setting the wrap-parameters for the x direction
-	//// and the y direction
 	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );	
+	glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );	
 
+  // set up the Texture size, type, format,...
+	glTexImage2D( GL_TEXTURE_2D, KTextureLevel, GL_DEPTH_COMPONENT, 512, 512, KTextureBorder, GL_DEPTH_COMPONENT, GL_FLOAT, NULL );
+		
+
+	//CREATE FRAMEBUFFER OBJECT (and attach the textures)
+	//---------------------------------------------------
 	// generate, create & assign the framebuffer object
 	glGenFramebuffersEXT ( 1, iFrameBufferID );
 	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, iFrameBufferID[0] );
 
 	//// attach the two textures to the framebuffer
 	//// (one is a color attachment, one is depth attachment)
-	glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT,
-								GL_TEXTURE_2D, iTextureID[0], KTextureLevel );
+	glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, iTextureID[0], KTextureLevel );
+	glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT,  GL_TEXTURE_2D, iTextureID[1], KTextureLevel );	
+	
+
+
+	//Enable multi textures
+	//---------------------
+	glActiveTexture( GL_TEXTURE0 );
+	glEnable( GL_TEXTURE_2D );
+	glBindTexture( GL_TEXTURE_2D, iTextureID[0] );
+
+	glActiveTexture( GL_TEXTURE1 );
+	glEnable( GL_TEXTURE_2D );
+	glBindTexture( GL_TEXTURE_2D, iTextureID[1] );
+
+
 
 	//// assign the window system framebuffer again
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, KWindowSystemFrameBuffer);
 	glBindTexture( GL_TEXTURE_2D, 0 );
+	CheckFrameBufferStatus();
 	}
 
 /** \brief Method that creates a mesh
@@ -497,10 +532,6 @@ void CMyRenderer::DrawVertexNormal( TVector3 vx[], TVector3 nv[]) const
 */
 void CMyRenderer::RenderScene()
 	{
-	//CLEAR SCREEN AMD DEPTH BUFFER
-	glClearColor (0.0, 0.0, 0.0, 0.0);
-	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
 	//SET PERSPECTIVE
 	glMatrixMode( GL_PROJECTION);
 	glLoadIdentity();
@@ -533,54 +564,29 @@ void CMyRenderer::RenderScene()
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, iFrameBufferID[0]);	
 ////	glClearColor (0.0, 1.0, 0.0, 0.0);
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-//
-//
-//	//DRAW THE WHOLE SCENE (ALL OBJECTS)
+
+
+	//DRAW THE WHOLE SCENE (ALL OBJECTS)
 	glUseProgram(iShaderProgramId);
 	DrawSceneNode( iScene );
 	glUseProgram(0);
 
-
-	//------------------------------------------------------------
-/*	//configure the transforms for 2D
-	glMatrixMode( GL_PROJECTION);
-	glLoadIdentity();
-	gluOrtho2D( 0.0f, iFBOTextureWidth, 0.0f, iFBOTextureHeight);
-	glMatrixMode( GL_MODELVIEW);
-	glLoadIdentity();
-
-	glDisable(GL_LIGHTING);
-	glDisable(GL_CULL_FACE);
-    glDisable(GL_DEPTH_TEST);
-
-	//SET THE READING BUFFER
-	glReadBuffer( GL_BACK );
-	//glReadPixels( 0,0, iFBOTextureWidth, iFBOTextureHeight, GL_RGBA, GL_FLOAT, iPixelBuffer1 );
-	glReadPixels( 0,0, iScreenWidth, iScreenHeight, GL_DEPTH_COMPONENT, GL_FLOAT, iDepthBuffer);
-*/	//------------------------------------------------------------
+	//glGenerateMipmapEXT( GL_TEXTURE_2D );
 
 	//glColor3f(1,0,0);
 	//glutWireSphere(1,20,16);
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, KWindowSystemFrameBuffer);
 	glViewport( 0,0, iScreenWidth, iScreenHeight );
 
-
-//	glGenerateMipmapEXT( GL_TEXTURE_2D );
+	//CLEAR SCREEN AMD DEPTH BUFFER
+	glClearColor (0.0, 0.0, 0.0, 0.0);
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	
 
 	//Render a quad with the pre-rendered scene as a texture
 	RenderSceneOnQuad();
 
 	glFlush(); // Force the execution of OpenGL commands so far
-
-
-	//------------------------------------------------------------
-/*	//Write back to the buffer
-	glDrawBuffer( GL_BACK );
-	glRasterPos2i( 0, 0 );
-	//glDrawPixels( iFBOTextureWidth, iFBOTextureHeight, GL_RGBA, GL_FLOAT, iPixelBuffer1);
-	glDrawPixels( iScreenWidth, iScreenHeight, GL_LUMINANCE, GL_FLOAT, iDepthBuffer);
-	glFlush();
-*/	//------------------------------------------------------------
 
 
 	//DOF with pixel buffers
@@ -624,20 +630,37 @@ void CMyRenderer::RenderSceneOnQuad()
 	glBindTexture( GL_TEXTURE_2D, iTextureID[0] );	
 	glEnable( GL_TEXTURE_2D );
 	glTexEnvf( GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, iScale );
-	glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
+//	glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
 
+	//glBegin(GL_QUADS);
+	//	glTexCoord2i( 0, 0 );	
+	//	glVertex2i( 0, 0 );
+	//	
+	//	glTexCoord2i( 0, 1 );
+	//	glVertex2i( iScreenWidth, 0 );
+	//	
+	//	glTexCoord2i( 1, 1 );
+	//	glVertex2i( iScreenWidth, iScreenHeight );
+	//	
+	//	glTexCoord2i( 1, 0 );
+	//	glVertex2i( 0, iScreenHeight );
+	//glEnd();
 
 	glBegin(GL_QUADS);
-		glTexCoord2i( 0, 0 );	
+		glMultiTexCoord2f( GL_TEXTURE0, 0,0 );
+		glMultiTexCoord2f( GL_TEXTURE1, 0,0 );
 		glVertex2i( 0, 0 );
 		
-		glTexCoord2i( 0, 1 );
+		glMultiTexCoord2f( GL_TEXTURE0, 0,1 );
+		glMultiTexCoord2f( GL_TEXTURE1, 0,1 );
 		glVertex2i( iScreenWidth, 0 );
 		
-		glTexCoord2i( 1, 1 );
+		glMultiTexCoord2f( GL_TEXTURE0, 1,1 );
+		glMultiTexCoord2f( GL_TEXTURE1, 1,1 );
 		glVertex2i( iScreenWidth, iScreenHeight );
 		
-		glTexCoord2i( 1, 0 );
+		glMultiTexCoord2f( GL_TEXTURE0, 1,0 );
+		glMultiTexCoord2f( GL_TEXTURE1, 1,0 );
 		glVertex2i( 0, iScreenHeight );
 	glEnd();
 
@@ -807,13 +830,6 @@ void CMyRenderer::ApplyFilter(int aCocDiameter, int aX, int aY )
 //		}
 
 	}
-
-
-
-
-
-
-
 
 
 
@@ -1059,19 +1075,119 @@ void CMyRenderer::SetShaders()
 	//free(fragmentShaderStore2);
 
 	//COMPILE
-	glCompileShader(vertexShaderId  );
-	glCompileShader(fragmentShaderId1);
-//	glCompileShader(fragmentShaderId2);
+	glCompileShader( vertexShaderId );
+	glCompileShader( fragmentShaderId1 );
 
 	//LINK PROGRAM
 	iShaderProgramId = glCreateProgram();
 	glAttachShader( iShaderProgramId, fragmentShaderId1 );
-//	glAttachShader( iShaderProgramId, fragmentShaderId2 );
 	glAttachShader( iShaderProgramId, vertexShaderId );
 	glLinkProgram( iShaderProgramId );
+
+	//Check the statuses:
+	bool status(true);
+	status &= VerifyShaderCompilation( vertexShaderId );
+	status &= VerifyShaderCompilation( fragmentShaderId1 );
+	status &= VerifyShaderProgram( iShaderProgramId );
+	if ( !status ){ exit(-1); }
+
+	}
+
+void CMyRenderer::CheckFrameBufferStatus()
+{
+  GLenum status;
+  status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+  fprintf(stderr, "%x\n", status);
+  switch(status)
+		{
+		case GL_FRAMEBUFFER_COMPLETE_EXT:
+			fprintf(stderr,"framebuffer complete!\n");
+			break;
+		case GL_FRAMEBUFFER_UNSUPPORTED_EXT:
+			fprintf(stderr,"framebuffer GL_FRAMEBUFFER_UNSUPPORTED_EXT\n");
+			/* you gotta choose different formats */
+			_ASSERT(0);
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT:
+			fprintf(stderr,"framebuffer INCOMPLETE_ATTACHMENT\n");
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT:
+			fprintf(stderr,"framebuffer FRAMEBUFFER_MISSING_ATTACHMENT\n");
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT:
+			fprintf(stderr,"framebuffer FRAMEBUFFER_DIMENSIONS\n");
+			break;
+//		case GL_FRAMEBUFFER_INCOMPLETE_DUPLICATE_ATTACHMENT_EXT:
+//			fprintf(stderr,"framebuffer INCOMPLETE_DUPLICATE_ATTACHMENT\n");
+//			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT:
+			fprintf(stderr,"framebuffer INCOMPLETE_FORMATS\n");
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT:
+			fprintf(stderr,"framebuffer INCOMPLETE_DRAW_BUFFER\n");
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT:
+			fprintf(stderr,"framebuffer INCOMPLETE_READ_BUFFER\n");
+			break;
+		case GL_FRAMEBUFFER_BINDING_EXT:
+			fprintf(stderr,"framebuffer BINDING_EXT\n");
+			break;
+			/* 
+		case GL_FRAMEBUFFER_STATUS_ERROR_EXT: 
+			fprintf(stderr,"framebuffer STATUS_ERROR\n");
+			break; 
+			*/ \
+			default: 
+				/* programming error; will fail on all hardware */
+				assert(0); 
+		}
+}
+
+bool CMyRenderer::VerifyShaderCompilation( int aShaderId )
+	{
+	int status;
+	int type;
+	glGetShaderiv( aShaderId, GL_COMPILE_STATUS, &status );
+	glGetShaderiv( aShaderId, GL_SHADER_TYPE, &type );
+
+	string typeString = (GL_VERTEX_SHADER==type)?"Vertex":"Fragment";
+	
+	if( GL_FALSE == status )
+		{
+		const int KLengthMax=100;
+		char infoLog[KLengthMax];
+
+		glGetShaderInfoLog( aShaderId, KLengthMax, NULL, infoLog);
+		cout << "- "<< typeString <<" Shader compilation FAILED:\n" << infoLog << endl;
+
+	//	exit(-1);
+		}
+	else 
+		{
+		cout << "- "<< typeString <<" Shader compilation OK.\n";
+		}
+	return (0==status)? false:true;
 	}
 
 
+bool CMyRenderer::VerifyShaderProgram( int aShaderProgramId )
+	{
+	int status;
+	glGetProgramiv( aShaderProgramId, GL_LINK_STATUS, &status);
+
+	if( GL_FALSE == status )
+		{
+		const int KLengthMax=100;
+		char infoLog[KLengthMax];
+		glGetProgramInfoLog( aShaderProgramId, KLengthMax, NULL, infoLog);
+		cout << "- Program Linking FAILED:\n" << infoLog << endl;
+		}
+	else 
+		{
+		cout << "- Program Linking OK.\n";
+		}
+	return (0==status)? false:true;
+	}
 
 
 // SORTERS
@@ -1094,5 +1210,7 @@ void ResizeSceneWithRenderer( int aWidth, int aHeight )
 	if (CMyRenderer::iCurrentRenderer != NULL)
 		CMyRenderer::iCurrentRenderer->ResizeScene(aWidth, aHeight);
 	}
+
+
 
 
