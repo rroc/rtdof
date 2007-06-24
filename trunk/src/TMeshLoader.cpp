@@ -12,6 +12,10 @@ using std::ios;
 //using std::istream;
 //using std::fstream;
 
+#ifdef __APPLE__
+#include <CoreFoundation/CoreFoundation.h>
+#endif
+
 //CONSTANTS
 const int KMaxObjNameLength = 20;
 
@@ -53,6 +57,11 @@ bool TMeshLoader::Load3DS( CMesh& aMesh, char* aFileName, float aScale )
 		dataFile.read( reinterpret_cast<char *>(&dataLength), dataLengthSize );
 		//std::cout << "ID: " << dataId << " LENGTH: " << dataLength << endl;
 
+#ifdef __APPLE__
+		dataId = CFSwapInt16(dataId);
+		dataLength = CFSwapInt32(dataLength);
+#endif		
+		
 		//PARSE FILE
 		switch (dataId)
 			{
@@ -120,6 +129,9 @@ bool TMeshLoader::Load3DS( CMesh& aMesh, char* aFileName, float aScale )
 				//READ THE AMOUNT OF VERTICES
 				unsigned short numberOfVertices(0);
 				dataFile.read( reinterpret_cast<char *>(&numberOfVertices), sizeof (unsigned short) );
+#ifdef __APPLE__
+				numberOfVertices = CFSwapInt16(numberOfVertices);
+#endif					
 				cout << "VERTICES: " << numberOfVertices << endl;
 
 				//READ VERTICES INTO MESH
@@ -131,6 +143,17 @@ bool TMeshLoader::Load3DS( CMesh& aMesh, char* aFileName, float aScale )
 					dataFile.read( reinterpret_cast<char *>(&x), sizeof (float) );
 					dataFile.read( reinterpret_cast<char *>(&y), sizeof (float) );
 					dataFile.read( reinterpret_cast<char *>(&z), sizeof (float) );
+#ifdef __APPLE__
+					CFSwappedFloat32 result = CFConvertFloatHostToSwapped(x);
+					result.v = CFSwapInt32(result.v);
+					x = CFConvertFloatSwappedToHost(result);
+					result = CFConvertFloatHostToSwapped(y);
+					result.v = CFSwapInt32(result.v);
+					y = CFConvertFloatSwappedToHost(result);
+					result = CFConvertFloatHostToSwapped(z);
+					result.v = CFSwapInt32(result.v);
+					z = CFConvertFloatSwappedToHost(result);
+#endif					
 					vertex.set( x*aScale, y*aScale, z*aScale );
 					aMesh.iVertices.push_back(vertex);
 					}
@@ -150,7 +173,9 @@ bool TMeshLoader::Load3DS( CMesh& aMesh, char* aFileName, float aScale )
 				unsigned short numberOfTriangles(0);
 				dataFile.read( reinterpret_cast<char *>(&numberOfTriangles), sizeof (unsigned short) );
 				cout << "TRIANGLES: " << numberOfTriangles << endl;
-
+#ifdef __APPLE__
+				numberOfTriangles = CFSwapInt16(numberOfTriangles);
+#endif				
 				//READ TRIANGLES INTO MESH
 				unsigned short v1, v2, v3, flags;
 
@@ -161,6 +186,12 @@ bool TMeshLoader::Load3DS( CMesh& aMesh, char* aFileName, float aScale )
 					dataFile.read( reinterpret_cast<char *>(&v3), sizeof (unsigned short) );
 
 					dataFile.read( reinterpret_cast<char *>(&flags), sizeof (unsigned short) );
+#ifdef __APPLE__
+					v1 = CFSwapInt16(v1);
+					v2 = CFSwapInt16(v2);
+					v3 = CFSwapInt16(v3);
+					flags = CFSwapInt16(flags);
+#endif					
 					TTriangle triangle( v1, v2, v3 );
 					aMesh.iTriangles.push_back(triangle);
 					}
@@ -179,14 +210,23 @@ bool TMeshLoader::Load3DS( CMesh& aMesh, char* aFileName, float aScale )
 				unsigned short numberOfTextureCoordinates(0);
 				dataFile.read( reinterpret_cast<char *>(&numberOfTextureCoordinates), sizeof (unsigned short) );
 				cout << "TEXTURECOORDs: " << numberOfTextureCoordinates << endl;
-
+#ifdef __APPLE__
+				numberOfTextureCoordinates = CFSwapInt16(numberOfTextureCoordinates);
+#endif					
 				//READ TEXTUREMAP
 				float u,v;
 				for (i=0; i<numberOfTextureCoordinates; i++)
 					{
 					dataFile.read( reinterpret_cast<char *>(&u), sizeof(float) );
 					dataFile.read( reinterpret_cast<char *>(&v), sizeof(float) );
-					
+#ifdef __APPLE__
+					CFSwappedFloat32 result = CFConvertFloatHostToSwapped(u);
+					result.v = CFSwapInt32(result.v);
+					u = CFConvertFloatSwappedToHost(result);
+					result = CFConvertFloatHostToSwapped(v);
+					result.v = CFSwapInt32(result.v);
+					v = CFConvertFloatSwappedToHost(result);
+#endif										
 					//aMesh.iTextureCoords.push_back(TVector3(u*aScale,v*aScale,0));
 					}
 				}

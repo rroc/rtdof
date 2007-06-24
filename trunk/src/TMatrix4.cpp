@@ -1,6 +1,7 @@
 //INCLUDES
 #include "TMatrix4.h"
 
+#undef USE_SIN_TABLE
 //CLASS DEFINITION
 
 /** \brief Default constructor
@@ -669,3 +670,4 @@ TMatrix4::~TMatrix4(void)
 	{
 	}
 
+#define USE_SIN_TABLE

@@ -54,7 +54,6 @@ const int KNumberOfShaderPrograms = 3;
 class CMyRenderer
 	{
 	public:
-
 		enum TRenderType {
 			ERenderVertices=0,
 			ERenderWire,
@@ -207,6 +206,12 @@ class CMyRenderer
 
 		//SETTERS
 		//---------------------------------------
+		
+		/** Changes the focal plane
+		* @param aFocusChange amount of focus change
+		*/
+		void ChangeFocus( float aFocusChange ) 
+			{ iFocus += aFocusChange; }
 
 		/**
 		* Set the scale. Sets the current iScale used in Calculations()
@@ -361,7 +366,7 @@ class CMyRenderer
 		float* iPixelBuffer2;
 		float* iDepthBuffer;
 
-		GLuint iColorMapId[KNumberOfColorMaps];
+		GLuint iColorMapId[ KNumberOfColorMaps ];
 		GLuint iFrameBufferId;
 		GLuint iDepthMapId;
 
@@ -371,6 +376,7 @@ class CMyRenderer
 		vector<CSceneRotation*> iSceneRotations; //current transformation matrix
 
 		CSceneRotation* iRootRot;
+		CSceneRotation* iRootRotNeg;
 
 		TMatrix4 iPerspectiveMatrix;
 		TMatrix4 iViewportMatrix;
@@ -387,6 +393,7 @@ class CMyRenderer
 		TAngles iCurrentAngles;	///< Current angles of mesh (rot x, rot y, rot z)
 		TAngles iAnglesChange;	///< Change of angles per frame (rot x, rot y, rot z)
 		float iScale;		///< Scaling to be applied
+		float iFocus;
 
 		bool  iAxisDrawn;	///< Draw Axis or Not
 		bool  iNormalsDrawn; ///< Draw Normals or Not
@@ -398,7 +405,7 @@ class CMyRenderer
 
 		float iViewDistance;
 
-		char  iFpsCountString[60];	//< String for FPS
+		char  iFpsCountString[ 60 ];	//< String for FPS
 		int   iFrame;				//< Current frame number (used to approximate FPS)
 		float iCurrentTime;			//< Current time
 		float iPreviousTime;		//< The previous second

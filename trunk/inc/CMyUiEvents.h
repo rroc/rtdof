@@ -25,6 +25,7 @@ class CMyUiEvents
 		void ProcessNormalKeys( unsigned char key, int x, int y );
 		void ProcessCursorKeys( int key, int x, int y );
 		void ProcessMouseEvent( int button, int state, int x, int y );
+		void ProcessMouseMotionEvent( int x, int y );
 
 	//PUBLIC DATA
 	public:
@@ -32,10 +33,21 @@ class CMyUiEvents
 
 	//PRIVATE DATA
 	private:
+		enum TMouseDownStatus
+			{
+			EMouseUp = 0,
+			EMouseDownLeft,
+			EMouseDownRight
+			};
+
 		CMyRenderer* iRenderer;
+		TMouseDownStatus iMouseButtonDown;
+		int iMouseX;
+		int iMouseY;
 	};
 
 extern void ProcessNormalKeysWithUi( unsigned char key, int x, int y );
 extern void ProcessCursorKeysWithUi( int key, int x, int y );
 extern void ProcessMouseEventWithUi( int button, int state, int x, int y);
+extern void ProcessMouseMotionEventWithUi( int x, int y );
 #endif
