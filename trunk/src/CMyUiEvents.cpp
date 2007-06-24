@@ -50,9 +50,6 @@ void CMyUiEvents::ProcessNormalKeys(unsigned char key, int x, int y)
 		case 'n':
 			iRenderer->SetNormalsDrawn( !iRenderer->NormalsDrawn() );
 			break;
-		case 'v':
-			iRenderer->SetUseVertexNormals( !iRenderer->UseVertexNormals() );
-			break;
 
 		//CHANGE RENDERER
 		case '-':

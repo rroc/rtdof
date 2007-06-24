@@ -1,7 +1,7 @@
 #ifndef BASIC1_H
 #define BASIC1_H
 
-#include <windows.h>
+//#include <windows.h>
 
 #include <stdio.h>    // for fopen, FILE & NULL
 #include <cstdlib>    // for exit and atoi
@@ -18,6 +18,7 @@
 #include <vector>
 #include <algorithm>
 #include <time.h>
+
 
 // ***** LINUX INCLUDE
 //#include <GL/glut.h>    // Header File For The GLUT Library for linux

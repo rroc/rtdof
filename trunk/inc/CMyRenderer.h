@@ -120,77 +120,89 @@ class CMyRenderer
 
 		///Creates a Scene
 		void CreateScene();
+
+
 		//GETTERS
+		//---------------------------------------
 
 		/**
 		* Get a width of the screen.
 		* @return iScreenWidth
 		*/
-		int Width() const { return iScreenWidth; };
+		int Width() const 
+			{ return iScreenWidth; };
 
 		/**
 		* Get a height of the screen.
 		* @return iScreenHeight
 		*/
-		int Height() const { return iScreenHeight; };
+		int Height() const 
+			{ return iScreenHeight; };
 
 		/**
 		* Get current scale.
 		* @return iScale
 		* @see SetScale
 		*/
-		float Scale() const { return iScale; };
+		float Scale() const 
+			{ return iScale; };
 
 		/**
 		* Get true if axis are drawn.
 		* @return iAxisDrawn
 		* @see SetDrawAxis
 		*/
-		bool AxisDrawn() const { return iAxisDrawn; };
+		bool AxisDrawn() const 
+			{ return iAxisDrawn; };
 
 		/**
 		* Get true if normals are drawn.
 		* @return iFaceNormalsDrawn
 		*/
-		bool NormalsDrawn() const { return iNormalsDrawn; };
-
-		/**
-		* Get true if normals are drawn.
-		* @return iFaceNormalsDrawn
-		*/
-		bool UseVertexNormals() const { return iUseVertexNormals; };
+		bool NormalsDrawn() const 
+			{ return iNormalsDrawn; };
 
 		/**
 		* Get point of rotation.
 		* @return point of rotation
 		*/
-		TVector3 PointOfRotation() const { return iPointOfRotation; };
+		TVector3 PointOfRotation() const 
+			{ return iPointOfRotation; };
 
 		/**
 		* Get the change of the angles. This is the rotation modifier applied in each frame
 		* @see SetAnglesChange
 		* @return iAnglesChange
 		*/
-		TAngles AnglesChange() const { return iAnglesChange; };
+		TAngles AnglesChange() const 
+			{ return iAnglesChange; };
 
 		/**
 		* Get the angles. This is the current angle of rotation
 		* @return iAnglesChange
 		*/
-		TAngles CurrentAngles() const { return iCurrentAngles; };
+		TAngles CurrentAngles() const 
+			{ return iCurrentAngles; };
 
 		/**
 		* Return the type of rendering.
 		* @return iRenderType
 		*/
-		TRenderType RenderType() const { return iRenderType; };
+		TRenderType RenderType() const 
+			{ return iRenderType; };
 
 		/**
 		* Returns true if transform is in process. Usually do not interrupt!
 		*/
-		bool TransformInProcess() const{ return iTransformInProcess;}
+		bool TransformInProcess() const
+			{ return iTransformInProcess;}
+
+		TAngles RotAnglesChange() const 
+			{ return iRotAnglesChange; };
+
 
 		//SETTERS
+		//---------------------------------------
 
 		/**
 		* Set the scale. Sets the current iScale used in Calculations()
@@ -198,42 +210,31 @@ class CMyRenderer
 		* @see Scale
 		* @see Calculations
 		*/
-		void SetScale( float aScale );
+		void SetScale( float aScale )
+			{ iScale = aScale; }
 
 		/**
 		* Set the value to draw the axis or not.
 		* @param aDrawAxis boolean value determining if axis are drawn or not
 		* @see Calculations
 		*/
-		void SetAxisDrawn( const bool aDrawAxis );
+		void SetAxisDrawn( const bool aDrawAxis )
+			{ iAxisDrawn = aDrawAxis; }
 
 		/**
 		* Set the value to draw the face normals or not.
 		* @param aDrawNormals boolean value determining if normals are drawn or not
 		*/
-		void SetNormalsDrawn( const bool aDrawNormals );
-
-		/**
-		* Set the value to draw the vertex normals or not.
-		* @param aDrawNormals boolean value determining if normals are drawn or not
-		*/
-		void SetUseVertexNormals( const bool aVNormals );
+		void SetNormalsDrawn( const bool aDrawNormals )
+			{ iNormalsDrawn = aDrawNormals;}
 
 		/**
 		* Set the point of rotation.
 		* @param aVector new point of rotation
 		* @see Calculations
 		*/
-		void SetPointOfRotation( const TVector3& aVertex );
-
-		/**
-		* Set the point of rotation.
-		* @param x x of new point of rotation
-		* @param y y of new point of rotation
-		* @param z z of new point of rotation
-		* @see Calculations
-		*/
-		void SetPointOfRotation( float x, float y, float z );
+		void SetPointOfRotation( const TVector3& aVertex )
+			{ iPointOfRotation = aVertex;}
 
 		/**
 		* Set the change of angle. This changes the rotation modifier applied in each frame
@@ -241,7 +242,8 @@ class CMyRenderer
 		* @see AnglesChange
 		* @see Calculations
 		*/
-		void SetAnglesChange( const TAngles& aAngle );
+		void SetAnglesChange( const TAngles& aAngle )
+			{ iAnglesChange = aAngle;}
 
 		/**
 		* Set the current angle. This changes the current rotation angle
@@ -251,22 +253,28 @@ class CMyRenderer
 		* @see AnglesChange
 		* @see Calculations
 		*/
-		void SetCurrentAngles( float aXAngle, float aYAngle, float aZAngle  );
+		void SetCurrentAngles( float aXAngle, float aYAngle, float aZAngle  )
+			{ iCurrentAngles = TAngles(aXAngle, aYAngle, aZAngle);}
 
-		void SetRenderType( const TRenderType& aRenderType) {iRenderType = aRenderType; };
+		void SetRenderType( const TRenderType& aRenderType) 
+			{iRenderType = aRenderType; };
 
-		TAngles RotAnglesChange() const { return iRotAnglesChange; };
-		void SetRotAngles( const TAngles& aAngles ){iRotAnglesChange=TAngles(aAngles);}
-		void RenderSceneOnQuad(void);
-
-		void SimulateDOF();
-		void ApplyFilter(int aCocDiameter, int aX, int aY );
+		void SetRotAngles( const TAngles& aAngles )
+			{iRotAnglesChange=TAngles(aAngles);}
+		
+		
+		
 
 	//PRIVATE METHODS
 	private:
-		void SetShaders();
 
 		void InitForFrameBufferObject();
+
+		void RenderSceneOnQuad(void);
+		void SimulateDOF();
+		void ApplyFilter(int aCocDiameter, int aX, int aY );
+
+		void SetShaders();
 
 		//BASIC DRAWING FUNCTIONS
 
@@ -274,18 +282,11 @@ class CMyRenderer
 
 		/**
 		* Draw a triangle. Draws a triangle between vertices, this is used when rendering polygons.
-		* @param v1 Vertex 1
-		* @param v2 Vertex 1
-		* @param v3 Vertex 1
-		* @param r element of RGB color
-		* @param g element of RGB color
-		* @param b element of RGB color
+		* @param aVx TVector3 table of 3 vertices
+		* @param aNv TVector3 table of 3 normals
+		* @param aCol TColorRGB face color
 		*/
-		void DrawTriangle( const TVector3& v1, const TVector3& v2, const TVector3& v3, float r, float g, float b ) const;
-		void DrawTriangle( const TVector3& v1, const TVector3& v2, const TVector3& v3, const TColorRGB& c ) const;
-		void DrawTriangle( const TVector3& v1, const TVector3& v2, const TVector3& v3, const TColorRGB& c1, const TColorRGB& c2, const TColorRGB& c3 ) const;
 		void DrawTriangle(TVector3 aVx[], TVector3 aNv[], TColorRGB aCol) const;
-//		void DrawTriangle( CMesh& aMesh, int aTriangleIndex, float r, float g, float b );
 
 		/**
 		* Draws a triangle using OpenGL's 2D-lines. This is used when rendering polygons.
@@ -297,8 +298,6 @@ class CMyRenderer
 		* @param b element of RGB color
 		*/
 		void DrawWireTriangle( const TVector3& v1, const TVector3& v2, const TVector3& v3, float r, float g, float b ) const;
-		void DrawWireTriangle( const TVector3& v1, const TVector3& v2, const TVector3& v3,  const TColorRGB& c ) const;
-//		void DrawWireTriangle( CMesh& aMesh, int aTriangleIndex, float r, float g, float b );
 
 		/**
 		* Draws a line using OpenGL's 3-D lines. This is used when rendering polygons.
@@ -309,7 +308,6 @@ class CMyRenderer
 		* @param b element of RGB color
 		*/
 		void DrawLine(const TVector3& v1, const TVector3& v2, float r, float g, float b) const;
-		void DrawLine(const TVector3& v1, const TVector3& v2, const TColorRGB& c ) const;
 
 		/**
 		* Draw AxisMark
@@ -388,19 +386,19 @@ class CMyRenderer
 
 		bool  iAxisDrawn;	///< Draw Axis or Not
 		bool  iNormalsDrawn; ///< Draw Normals or Not
-		bool  iUseVertexNormals;
-		bool  iTransformInProcess;	///< When true, do not interrupt
 
+		bool  iTransformInProcess;	///< When true, do not interrupt
 
 		TVector3 iPointOfRotation;	//< Center Point of rotation
 		TVector3 iViewVector;		//< Viewing direction vector
 
 		float iViewDistance;
 
-		char  iFpsCountString[30];	//< String for FPS
+		char  iFpsCountString[60];	//< String for FPS
 		int   iFrame;				//< Current frame number (used to approximate FPS)
 		float iCurrentTime;			//< Current time
 		float iPreviousTime;		//< The previous second
+		long int   iPolyCount;
 
 		int iScreenWidth;	//< The width of the screen
 		int iScreenHeight;	//< The height of the screen
