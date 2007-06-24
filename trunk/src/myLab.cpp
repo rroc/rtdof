@@ -97,18 +97,24 @@ void initOpenGL()
 
 	glShadeModel(GL_SMOOTH); //GL_FLAT | GL_SMOOTH;
 	//glShadeModel( GL_FLAT ); // | GL_SMOOTH;
+	
+	//glHint( GL_POLYGON_SMOOTH_HINT, GL_FASTEST );
+	glEnable( GL_POLYGON_SMOOTH );
 
-	glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Texture mapping perspective correction
+
+	//glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST ); // Texture mapping perspective correction
     //glEnable(GL_TEXTURE_2D); // Texture mapping ON
-    glPolygonMode (GL_FRONT_AND_BACK, GL_FILL); // Polygon rasterization mode (polygon filled)
-
+    glPolygonMode (GL_FRONT, GL_FILL); // Polygon rasterization mode (polygon filled)
 	glEnable(GL_CULL_FACE); // Enable the back face culling
 
 	//glDepthRange( 0.1f, 0.3f);
     glEnable(GL_DEPTH_TEST); // Enable the depth test (z-buffer)
 
+
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity ();
+
+
 
 #ifdef USE_VERTEX_ARRAYS
 	//glEnableClientState(GL_COLOR_ARRAY);
@@ -155,7 +161,7 @@ int main(int argc, char **argv)
 
 	renderer->CreateScene();
 
-	glutFullScreen();
+	//glutFullScreen();
 
 	//START GL loop
 	glutMainLoop();
