@@ -43,7 +43,8 @@
 
 
 //CONSTANTS:
-const int KNumberOfColorMaps = 2;
+const int KNumberOfColorMaps = 3;
+const int KNumberOfShaderPrograms = 3;
 
 //CLASS DECLARATION
 
@@ -274,11 +275,11 @@ class CMyRenderer
 
 		void InitForFrameBufferObject();
 
-		void RenderSceneOnQuad( int aTextureId1, int aTextureId2 );
+		void RenderSceneOnQuad( int aColorMapId1, int aColorMapId2, int aQuadWidth, int aQuadHeight );
 		void SimulateDOF();
 		void ApplyFilter(int aCocDiameter, int aX, int aY );
 
-		void SetShaders();
+		void SetShaders( int& aShaderProgramId, char* aVertexShader, char* aFragmentShader );
 
 		//BASIC DRAWING FUNCTIONS
 
@@ -355,10 +356,7 @@ class CMyRenderer
 
 	//PRIVATE DATA
 	private:
-		int iShaderProgramId;
-
-		int iFBOTextureWidth;
-		int iFBOTextureHeight;
+		int iShaderProgramId[ KNumberOfShaderPrograms ];
 
 		float* iPixelBuffer1;
 		float* iPixelBuffer2;

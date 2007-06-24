@@ -349,7 +349,19 @@
 			Name="Shader"
 			>
 			<File
-				RelativePath=".\shader\dof.frag"
+				RelativePath=".\shader\blur.frag"
+				>
+			</File>
+			<File
+				RelativePath=".\shader\combine.frag"
+				>
+			</File>
+			<File
+				RelativePath=".\shader\render.frag"
+				>
+			</File>
+			<File
+				RelativePath=".\shader\render.vert"
 				>
 			</File>
 			<File
@@ -361,7 +373,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\shader\toon2.frag"
+				RelativePath=".\shader\transform.vert"
+				>
+			</File>
+			<File
+				RelativePath=".\shader\transformfinal.vert"
 				>
 			</File>
 		</Filter>
