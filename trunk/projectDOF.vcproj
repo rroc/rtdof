@@ -37,8 +37,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;C:\Documents and Settings\Johannes\My Documents\Visual Studio 2005\Projects\projectDOF\inc&quot;"
-				DebugInformationFormat="1"
+				AdditionalIncludeDirectories="inc\"
+				DebugInformationFormat="4"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -51,7 +51,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="glew32.lib"
+				OutputFile="bin\w32\$(ProjectName)_debug.exe"
 				GenerateDebugInformation="true"
+				GenerateMapFile="true"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -83,6 +86,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
+			WholeProgramOptimization="3"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -103,7 +107,8 @@
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="2"
 				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories="&quot;C:\Documents and Settings\Johannes\My Documents\Visual Studio 2005\Projects\projectDOF\inc&quot;"
+				WholeProgramOptimization="true"
+				AdditionalIncludeDirectories="inc\"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -116,7 +121,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				LinkTimeCodeGeneration="1"
+				OutputFile="bin\w32\$(ProjectName).exe"
+				LinkTimeCodeGeneration="3"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -248,6 +254,10 @@
 			</File>
 			<File
 				RelativePath=".\inc\CMyUiEvents.h"
+				>
+			</File>
+			<File
+				RelativePath=".\inc\CSceneMesh.h"
 				>
 			</File>
 			<File

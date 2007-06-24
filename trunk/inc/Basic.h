@@ -1,6 +1,8 @@
 #ifndef BASIC1_H
 #define BASIC1_H
 
+#include <windows.h>
+
 #include <stdio.h>    // for fopen, FILE & NULL
 #include <cstdlib>    // for exit and atoi
 #include <iostream>   // for cout and cerr
@@ -19,12 +21,41 @@
 
 // ***** LINUX INCLUDE
 //#include <GL/glut.h>    // Header File For The GLUT Library for linux
-#include <glut.h>    // Header File For The GLUT Library for linux
 //#include <GL/gl.h>	// Header File For The OpenGL32 Library for linux
 //#include <GL/glu.h>	// Header File For The GLu32 Library for linux
 
-//#include <GL/glprocs.h> //Header for the GL extensions in OGL 2.0 style
+#ifdef __APPLE__
+#include <OpenGL/gl.h>		// Header File For The OpenGL32 Library for Mac os x
+#include <OpenGL/glu.h>		// Header File For The GLu32 Library for Mac os x
+#include <GLUT/glut.h>		// Header File For The GLUT Library for Mac os x
 
+#elif defined _WIN32
+
+#include <GL/glew.h>
+#include <GL/glut.h>    // Header File For The GLUT Library
+//#undef _WIN32
+//#include <GL/glprocs.h> //Header for the GL extensions in OGL 2.0 style
+//#define _WIN32
+
+//extern PFNGLISRENDERBUFFEREXTPROC glIsRenderbufferEXT = NULL;
+//extern PFNGLBINDRENDERBUFFEREXTPROC glBindRenderbufferEXT = NULL;
+//extern PFNGLDELETERENDERBUFFERSEXTPROC glDeleteRenderbuffersEXT = NULL;
+//extern PFNGLGENRENDERBUFFERSEXTPROC glGenRenderbuffersEXT = NULL;
+//extern PFNGLRENDERBUFFERSTORAGEEXTPROC glRenderbufferStorageEXT = NULL;
+//extern PFNGLGETRENDERBUFFERPARAMETERIVEXTPROC glGetRenderbufferParameterivEXT = NULL;
+//extern PFNGLISFRAMEBUFFEREXTPROC glIsFramebufferEXT = NULL;
+//extern PFNGLBINDFRAMEBUFFEREXTPROC glBindFramebufferEXT = NULL;
+//extern PFNGLDELETEFRAMEBUFFERSEXTPROC glDeleteFramebuffersEXT = NULL;
+//extern PFNGLGENFRAMEBUFFERSEXTPROC glGenFramebuffersEXT = NULL;
+//extern PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC glCheckFramebufferStatusEXT = NULL;
+//extern PFNGLFRAMEBUFFERTEXTURE1DEXTPROC glFramebufferTexture1DEXT = NULL;
+//extern PFNGLFRAMEBUFFERTEXTURE2DEXTPROC glFramebufferTexture2DEXT = NULL;
+//extern PFNGLFRAMEBUFFERTEXTURE3DEXTPROC glFramebufferTexture3DEXT = NULL;
+//extern PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC glFramebufferRenderbufferEXT = NULL;
+//extern PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVEXTPROC glGetFramebufferAttachmentParameterivEXT = NULL;
+//extern PFNGLGENERATEMIPMAPEXTPROC glGenerateMipmapEXT = NULL;
+
+#endif
 #include "myLab.h"		//Global defines
 
 /* Elementary 3D graphic programming.

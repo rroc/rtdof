@@ -3,11 +3,6 @@
 
 
 #include "Basic.h"
-#include "TTriangle.h"
-#include "TVector3.h"
-#include "TMatrix4.h"
-#include "CMesh.h"
-
 
 /** \brief Class Scene Node
 *
@@ -27,14 +22,7 @@ class CSceneNode
 		};
 	public:
 		CSceneNode()
-			: //iObjectMesh(NULL)
-//			, iChildren(NULL)
-			 iNodeType(EBaseNode)
-			{};
-		CSceneNode( CMesh* aMesh )
-			: iObjectMesh( aMesh )
-//			, iChildren(NULL)
-			, iNodeType(EMeshNode)
+			: iNodeType(EBaseNode)
 			{};
 		~CSceneNode()
 			{
@@ -42,9 +30,6 @@ class CSceneNode
 				delete iChildren.at(i);
 			iChildren.clear();
 			};
-
-		TMatrix4	getLocalTransform(){ return iLocalTransform; };
-		CMesh*		getMesh()const { return iObjectMesh;};
 		CSceneNode*	getChild(int aIndex)const {return iChildren.at(aIndex); };
 		int			getChildAmount()const {return static_cast<int>(iChildren.size()); };
 		TNodeType	getNodeType()const{return iNodeType;}
@@ -55,14 +40,11 @@ class CSceneNode
 						return aNode;
 						};
 	protected:
-		TMatrix4	 iLocalTransform;
-		CMesh*		 iObjectMesh;
-		vector<CSceneNode*> iChildren;
 
+		vector<CSceneNode*> iChildren;
 		TNodeType	iNodeType;
-		//Later maybe
-		//enable/disable children
+
+		//Later maybe: enable/disable children
 	};
 
 #endif
-

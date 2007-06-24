@@ -21,7 +21,7 @@ TLight::TLight()
 	}
 
 TLight::TLight(const TColorRGB& aColor, const TVector3& aDirection) 
-	: color(aColor), direction(aDirection)
+	: color(aColor), direction(aDirection.normalize())
 	{
 	//empty on purpose
 	}
@@ -46,7 +46,7 @@ void TLight::setColor(const TColorRGB& _c)
  */
 void TLight::setDirection(const TVector3& _v)
 	{
-	this->direction = _v;
+	this->direction = _v.normalize();
 	}
 
 /** \brief Method to retrive the color of the light source
@@ -84,7 +84,7 @@ TVector3 TLight::getDirection() const
  */
 void TLight::transformDirection(const TMatrix4& _t)
 	{
-	this->direction = _t.mult(this->direction);
+	this->direction = (_t.mult(this->direction)).normalize();
 	}
 
 

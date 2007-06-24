@@ -14,15 +14,21 @@
 //CONSTANTS
 const int KScreenWidth = 480; ///< Default screen width  ( = PSP's screen width)
 const int KScreenHeight= 272; ///< Default screen height ( = PSP's screen height)
-const float KZNear	= 50.0f;
-const float KZFar	= 800.0f;
+
+const int KWindowSystemFrameBuffer = 0; // Window System Framebuffer ID
+const int KTextureBorder = 0; // texture border
+const int KTextureLevel = 0; // texture level resolution
+
+//VIEW FRUSTUM
+const float KZNear	= 10.0f;
+const float KZFar	= 300.0f;
 
 //INIT STATIC DATA
 CMyRenderer* CMyRenderer::iCurrentRenderer = 0;
 
 //CONSTANTS
-const float KXAngleModStart = 0.0f; //0.003f;
-const float KYAngleModStart = 0.0f; //-0.003f;
+const float KXAngleModStart = 0.8f; //0.003f;
+const float KYAngleModStart = -1.0f; //-0.003f;
 const float KZAngleModStart = 0.0f;
 
 const float KScaleStart = 0.5f;
@@ -52,6 +58,8 @@ CMyRenderer::CMyRenderer()
 	, iRenderType(ERenderFaceShadedCulled) //ERenderVertices)
 	, iAmountOfTriangles(1)
 	, iViewDistance(2)
+	, iMeshIndex(0)
+	, iOldMeshIndex(0)
 	{
 #ifdef USE_SIN_TABLE
 	CTrigTable* trigtable = new CTrigTable();
@@ -61,6 +69,8 @@ CMyRenderer::CMyRenderer()
 	iPixelBuffer1 = new float[iScreenWidth*iScreenHeight*4];
 	iPixelBuffer2 = new float[iScreenWidth*iScreenHeight*4];
 	iDepthBuffer  = new float[iScreenWidth*iScreenHeight];
+
+	InitForFrameBufferObject();
 	}
 
 //Constructor wiht the screen size defined
@@ -81,6 +91,8 @@ CMyRenderer::CMyRenderer( const int aWidth, const int aHeight )
 	, iRenderType(ERenderFaceShadedCulled) //ERenderVertices)
 	, iAmountOfTriangles(1)
 	, iViewDistance(2)
+	, iMeshIndex(1)
+	, iOldMeshIndex(1)
 	{
 #ifdef USE_SIN_TABLE
 	CTrigTable* trigtable = new CTrigTable();
@@ -90,6 +102,8 @@ CMyRenderer::CMyRenderer( const int aWidth, const int aHeight )
 	iPixelBuffer1 = new float[iScreenWidth*iScreenHeight*4];
 	iPixelBuffer2 = new float[iScreenWidth*iScreenHeight*4];
 	iDepthBuffer  = new float[iScreenWidth*iScreenHeight];
+	//FrameBufferObjectExtW32();
+	InitForFrameBufferObject();
 	}
 
 //DESTRUCTOR releases the used heap
@@ -102,6 +116,13 @@ CMyRenderer::~CMyRenderer()
 			delete iLights.at(i);
 			}
 		}
+	if(iMeshList.size()>0)
+		{
+		for(int i=0,j=static_cast<int>(iMeshList.size());i<j; i++)
+			{
+			delete iMeshList.at(i);
+			}
+		}
 	if( iMesh!=0 )
 		delete iMesh;
 
@@ -111,10 +132,114 @@ CMyRenderer::~CMyRenderer()
 		delete [] iPixelBuffer2;
 	if( iDepthBuffer!=0 )
 		delete [] iDepthBuffer;
+	
+	// remove the two textures and the framebuffer object
+	glDeleteTextures(2, iTextureID);
+	glDeleteFramebuffersEXT(1, iFrameBufferID);
 
 #ifdef USE_SIN_TABLE
 	delete CTrigTable::iTrigTable;
 #endif
+	}
+
+void CMyRenderer::InitForFrameBufferObject()
+	{
+	// get two texture identifiers that have not yet been used
+	glGenTextures ( 2, iTextureID );
+
+	// create & assign the first texture
+	glBindTexture( GL_TEXTURE_2D, iTextureID[0] );
+
+	// set up the Texture size, type, format,...
+	// similar to glReadPixels and glDrawPixels
+	// note: We're not supplying any texture image data since we're creating our own.
+	// Hence, the NULL-parameter at the end of this function
+	glTexImage2D( GL_TEXTURE_2D, KTextureLevel, GL_RGBA8, iScreenWidth,
+							  iScreenHeight, KTextureBorder, GL_RGBA, GL_FLOAT, NULL );
+
+	// set texture parameters
+	// filtering: see page 401 red book
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	// wrapping: see page 417 red book
+	// texture(s,t,r,q) equal to vertex(x, y, z, w)
+	// so in this case we're setting the wrap-parameters for the x direction
+	// and the y direction
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );	
+
+	// create & assign second texture
+	glBindTexture( GL_TEXTURE_2D, iTextureID[1] );
+
+	// set up the Texture size, type, format,...
+	glTexImage2D( GL_TEXTURE_2D, KTextureLevel, GL_DEPTH_COMPONENT24, iScreenWidth, 
+								iScreenHeight, KTextureBorder, GL_DEPTH_COMPONENT, GL_FLOAT, NULL );
+
+	// set texture parameters
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+
+	// generate, create & assign the framebuffer object
+	glGenFramebuffersEXT ( 1, iFrameBufferID );
+	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, iFrameBufferID[0] );
+
+	// attach the two textures to the framebuffer
+	// (one is a color attachment, one is depth attachment)
+	glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT,
+														 GL_TEXTURE_2D, iTextureID[0], KTextureLevel );
+	glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT,
+														 GL_TEXTURE_2D, iTextureID[1], KTextureLevel );
+
+	// assign the window system framebuffer again
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, KWindowSystemFrameBuffer);
+	}
+
+void CMyRenderer::FrameBufferObjectExtW32()
+	{
+			//
+	// EXT_framebuffer_object
+	//
+	//char *ext = (char*)glGetString( GL_EXTENSIONS );
+
+	//if( strstr( ext, "EXT_framebuffer_object" ) == NULL )
+	//	{
+	//	exit(-1);
+	//	}
+	//else
+	//	{
+		glIsRenderbufferEXT = (PFNGLISRENDERBUFFEREXTPROC)wglGetProcAddress("glIsRenderbufferEXT");
+		glBindRenderbufferEXT = (PFNGLBINDRENDERBUFFEREXTPROC)wglGetProcAddress("glBindRenderbufferEXT");
+		glDeleteRenderbuffersEXT = (PFNGLDELETERENDERBUFFERSEXTPROC)wglGetProcAddress("glDeleteRenderbuffersEXT");
+		glGenRenderbuffersEXT = (PFNGLGENRENDERBUFFERSEXTPROC)wglGetProcAddress("glGenRenderbuffersEXT");
+		glRenderbufferStorageEXT = (PFNGLRENDERBUFFERSTORAGEEXTPROC)wglGetProcAddress("glRenderbufferStorageEXT");
+		glGetRenderbufferParameterivEXT = (PFNGLGETRENDERBUFFERPARAMETERIVEXTPROC)wglGetProcAddress("glGetRenderbufferParameterivEXT");
+		glIsFramebufferEXT = (PFNGLISFRAMEBUFFEREXTPROC)wglGetProcAddress("glIsFramebufferEXT");
+		glBindFramebufferEXT = (PFNGLBINDFRAMEBUFFEREXTPROC)wglGetProcAddress("glBindFramebufferEXT");
+		glDeleteFramebuffersEXT = (PFNGLDELETEFRAMEBUFFERSEXTPROC)wglGetProcAddress("glDeleteFramebuffersEXT");
+
+		glGenFramebuffersEXT = (PFNGLGENFRAMEBUFFERSEXTPROC)wglGetProcAddress("glGenFramebuffersEXT");
+
+		glCheckFramebufferStatusEXT = (PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC)wglGetProcAddress("glCheckFramebufferStatusEXT");
+		glFramebufferTexture1DEXT = (PFNGLFRAMEBUFFERTEXTURE1DEXTPROC)wglGetProcAddress("glFramebufferTexture1DEXT");
+		glFramebufferTexture2DEXT = (PFNGLFRAMEBUFFERTEXTURE2DEXTPROC)wglGetProcAddress("glFramebufferTexture2DEXT");
+		glFramebufferTexture3DEXT = (PFNGLFRAMEBUFFERTEXTURE3DEXTPROC)wglGetProcAddress("glFramebufferTexture3DEXT");
+		glFramebufferRenderbufferEXT = (PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC)wglGetProcAddress("glFramebufferRenderbufferEXT");
+		glGetFramebufferAttachmentParameterivEXT = (PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVEXTPROC)wglGetProcAddress("glGetFramebufferAttachmentParameterivEXT");
+		glGenerateMipmapEXT = (PFNGLGENERATEMIPMAPEXTPROC)wglGetProcAddress("glGenerateMipmapEXT");
+
+		if( !glIsRenderbufferEXT || !glBindRenderbufferEXT || !glDeleteRenderbuffersEXT || 
+			!glGenRenderbuffersEXT || !glRenderbufferStorageEXT || !glGetRenderbufferParameterivEXT || 
+			!glIsFramebufferEXT || !glBindFramebufferEXT || !glDeleteFramebuffersEXT || 
+			!glGenFramebuffersEXT || !glCheckFramebufferStatusEXT || !glFramebufferTexture1DEXT || 
+			!glFramebufferTexture2DEXT || !glFramebufferTexture3DEXT || !glFramebufferRenderbufferEXT||  
+			!glGetFramebufferAttachmentParameterivEXT || !glGenerateMipmapEXT )
+		{
+//			MessageBox(NULL,"One or more EXT_framebuffer_object functions were not found", "ERROR",MB_OK|MB_ICONEXCLAMATION);
+			exit(-1);
+		}
+	//}
 	}
 
 /** \brief Method that creates a mesh
@@ -123,64 +248,75 @@ CMyRenderer::~CMyRenderer()
 */
 void CMyRenderer::CreateScene()
 	{
-	//INITIALIZE MESHES
+	//--------------------------
+	// INITIALIZE MESHES
+	//--------------------------
+	float size = 2.0f;
 
-	//CMesh* meshObject = new CMesh();
-	//TMeshLoader* loader = new TMeshLoader();
-	//loader->Load3DS(*meshObject, "3ds/icebear.3ds" );
-//	CMesh* meshObject  = new CIcosahedron(0.9);
-	float size = 7.0f;
-	CMesh* meshObject  = new CBall(48, size);
-//	CMesh* meshObject  = new CTitanic();
-	meshObject->calculateVertexNormals();
-	meshObject->randomColors();
+	//LOAD FROM 3DS
+	TMeshLoader* loader = new TMeshLoader();
 
+	CMesh* meshObject = new CMesh();
+	loader->Load3DS(*meshObject, "3ds/icebear.3ds", 0.03 );
+	if(meshObject->iVertices.size()>1)
+		{
+		iMeshList.push_back( meshObject );
+		}
+	//ADD OTHER OBJECTS
+	iMeshList.push_back( new CBall(32, size) );
+	iMeshList.push_back( new CIcosahedron(size-1) );
+	iMeshList.push_back( new CTitanic(size/2) );
 
+	//CALCULATE NORMALS
+	for(int i=0, j=iMeshList.size(); i<j; i++)
+		{
+		iMeshList.at(i)->calculateVertexNormals();
+		iMeshList.at(i)->randomColors();
+		}
+	iMeshList.at(0)->setSolidColor(0.8f,0.8f,1.0f);
 
-	//INITIALIZE POSITION
-	TVector3 transInit = TVector3(0, 0, -(KZNear+size));
-	TVector3 rotXY =  TVector3(-1, 0, 0 );
-	float rotAngle = 40;
-
-
-	//TRANSFERS PER OBJECT
-	TVector3 transPerObject = TVector3(0.1, 0.1, -10.0f);
-	//TVector3 rotXY2 =  TVector3(1, 0, 0 );
-	//float rotAngle2 = -35;
-
-	CSceneNode* mNodes[5];
-	CSceneTranslation* tNodes[5];
-	//CSceneRotation* rNodes[5];
-	mNodes[0] = new CSceneNode( meshObject );
-
-	iRootRot = new CSceneRotation( rotXY, rotAngle );
-	//CSceneRotation* rootRot2 = new CSceneRotation( rotXY2, rotAngle2 );
+	iSceneMesh = iMeshList.at(1);
 
 
+	//--------------------------
+	// BUILD THE SCENE:
+	//--------------------------
 
-	//BUILD THE SCENE:
-	//parent node
+	//BASE NODE:
 	iScene = new CSceneNode();
 	CSceneNode* currentNode = iScene; 
 
-	//initial transformations
-	currentNode = currentNode->addChild( new CSceneTranslation( transInit ) );
+	//INITIAL TRANSFORMATION
+	currentNode = currentNode->addChild( new CSceneTranslation( TVector3(0,0,-10-(KZNear+size)) ) );
+	//INITIAL ROTATION
+	iRootRot = new CSceneRotation( TAngles(10,20,0) );
 	currentNode = currentNode->addChild( iRootRot );
+	//FIRST MESH
+	currentNode = currentNode->addChild( new CSceneMesh( &iSceneMesh ) );
 
-	//First mesh
-	currentNode = currentNode->addChild( mNodes[0] );
-	//5 others
-	for(int i=1; i<7; i++)
+
+	//OTHER NODES
+
+	//Init holders: (these can be vectors later such as rotations)
+	CSceneNode* mNodes[5];
+	CSceneTranslation* tNodes[5];
+
+	//TRANSFERS PER OBJECT
+	TVector3 perObjectTransition(0.1, 0.1, -5.0f);
+	TAngles  perObjectRotation(5, 2, 4);
+
+	//SET ALL:
+	for(int i=0; i<5; i++)
 		{
-		mNodes[i] = new CSceneNode( meshObject );
-		tNodes[i] = new CSceneTranslation( transPerObject );
-		//rNodes[i] = new CSceneRotation( rotXY, rotAngle );
-		iSceneRotations.push_back(new CSceneRotation( rotXY, rotAngle ));
+		mNodes[i] = new CSceneMesh( &iSceneMesh );
+		tNodes[i] = new CSceneTranslation( perObjectTransition );
+		iSceneRotations.push_back(new CSceneRotation( perObjectRotation ));
 
 		currentNode = currentNode->addChild( tNodes[i] );
-		//currentNode = currentNode->addChild( iSceneRotations.at( iSceneRotations.size()-1) );//rNodes[i] ); //rNodes[i];
+		currentNode = currentNode->addChild( iSceneRotations.at( iSceneRotations.size()-1) );//rNodes[i] ); //rNodes[i];
 		currentNode = currentNode->addChild( mNodes[i] );
 		}
+
 
 	}
 
@@ -201,9 +337,11 @@ void CMyRenderer::FramesPerSec()
 	if ( iCurrentTime - iPreviousTime > 1000 )
 		{
 		//secure sprintf_s: (required by visualstudio 2005)
+#ifdef _WIN32
 		sprintf_s(iFpsCountString,"FPS:%4.2f", iFrame*1000.0/( iCurrentTime - iPreviousTime ));
-		//sprintf(iFpsCountString,"FPS:%4.2f", iFrame*1000.0/( iCurrentTime - iPreviousTime ));
-
+#else
+		sprintf(iFpsCountString,"FPS:%4.2f", iFrame*1000.0/( iCurrentTime - iPreviousTime ));
+#endif
 		iPreviousTime = iCurrentTime;
 		iFrame = 0;
 		}
@@ -268,12 +406,11 @@ void CMyRenderer::DrawText() const
 *	You dont have to change or understand the openGL or this method
 *
 */
-void CMyRenderer::DrawTriangle(TVector3 aVx[], TVector3 aNv[], TColorRGB aCol[]) const
+void CMyRenderer::DrawTriangle(TVector3 aVx[], TVector3 aNv[], TColorRGB aCol) const
 	{
 	//FACE COLORING
-	//glColor3f( aCol[0].getR(), aCol[0].getG(), aCol[0].getB());
-	GLfloat mat_diffuse[] = { aCol[0].getR(), aCol[0].getG(), aCol[0].getB() };
-
+	//glColor3f( aCol.getR(), aCol.getG(), aCol.getB());
+	GLfloat mat_diffuse[] = { aCol.getR(), aCol.getG(), aCol.getB() };
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
 
 	glBegin(GL_TRIANGLES);
@@ -451,52 +588,56 @@ void CMyRenderer::DrawVertexNormal( TVector3 vx[], TVector3 nv[]) const
 */
 void CMyRenderer::RenderScene()
 	{
-	//Clear screen amd depth buffer
+	//CLEAR SCREEN AMD DEPTH BUFFER
 	glClear( GL_COLOR_BUFFER_BIT |GL_DEPTH_BUFFER_BIT );
-	glReadPixels( 0,0, iScreenWidth, iScreenHeight, GL_RGBA, GL_FLOAT, iPixelBuffer2 );
 
+	//check that perspective is on
 	glMatrixMode( GL_PROJECTION);
 	glLoadIdentity();
-
 	gluPerspective( 45.0f, (GLfloat)iScreenWidth / (GLfloat)iScreenHeight, KZNear, KZFar);
-	//gluPerspective( zoom, (float)width/(float)height, distance/10.0f, distance*2.0f);
 
+	//Rest is for the models
 	glMatrixMode( GL_MODELVIEW);
 	glLoadIdentity();
-	//iAnglesChange.iRotX += iAnglesChange.iRotX;
-	iRootRot->Rotate( TVector3(1,0,0), iAnglesChange.iRotX );
-	iRootRot->Rotate( TVector3(0,1,0), iAnglesChange.iRotY );
-	iRootRot->Rotate( TVector3(0,0,1), iAnglesChange.iRotZ );
-
-	//for(int i=0,j=iSceneRotations.size();i<j;i++)
-	//	{
-	//	iSceneRotations.at(i)->Rotate( TVector3(1,0,0), iAnglesChange.iRotX );
-	//	iSceneRotations.at(i)->Rotate( TVector3(0,1,0), iAnglesChange.iRotY );
-	//	iSceneRotations.at(i)->Rotate( TVector3(0,0,1), iAnglesChange.iRotZ );
-	//	}
-
-	//sort( iMeshes.begin(), iMeshes.end(), SortByObject );
-
-//	glLoadIdentity(); // Initialize the model matrix as identity
-//	gluLookAt (0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-
-	glMatrixMode(GL_MODELVIEW); // Modeling transformation
-    glLoadIdentity(); // Initialize the model matrix as identity
 	gluLookAt (0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-    //glTranslatef(0.0,0.0,-300); // We move the object forward (the model matrix is multiplied by the translation matrix)
 
-	//Recursively draws the whole scene
+	//CHANGE OBJECT IF NEEDED
+	iMeshIndex = (iMeshIndex<0)?iMeshList.size()-1:iMeshIndex;
+	iMeshIndex = (iMeshIndex>iMeshList.size()-1)?0:iMeshIndex;
+	if(iOldMeshIndex != iMeshIndex)
+		{
+		iSceneMesh = iMeshList.at( iMeshIndex );
+		iOldMeshIndex=iMeshIndex;
+		}
+
+	//APPLY ROTATIONS
+	iRootRot->Rotate( iAnglesChange );
+	//to all others as well
+	for(int i=0,j=iSceneRotations.size();i<j;i++)
+		{
+		iSceneRotations.at(i)->Rotate( iAnglesChange );
+		}
+
+
+
+	//PREPARE THE FRAMEBUFFER OBJECT
+//	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, iFrameBufferID[0]);	
+//	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+	//DRAW THE WHOLE SCENE (ALL OBJECTS)
 	DrawSceneNode( iScene );
-//	glutSolidSphere (1.0, 20, 16);
-//	glutWireCube (1.0);
+	//if(iAxisDrawn) DrawAxisMark( 0, 0, 0, 0.1 ); //Draw the center
 
-	if(iAxisDrawn) DrawAxisMark( 0, 0, 0, 0.1 );
+	//FRAMEBUFFER OBJECT TO SCREEN
+	//Assign the window-system framebuffer back
+//	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, KWindowSystemFrameBuffer);
+	//Render a quad with the pre-rendered scene as a texture
+//	RenderSceneOnQuad();
 
+	glFlush(); // Force the execution of OpenGL commands so far
 
-
-	glFlush(); // This force the execution of OpenGL commands
-
-	SimulateDOF();
+	//DOF with pixel buffers
+	//SimulateDOF();
 
 #ifdef USE_FPS_LIMIT
 	//framerate limiter
@@ -519,11 +660,47 @@ void CMyRenderer::RenderScene()
 
 
 
+void CMyRenderer::RenderSceneOnQuad()
+	{
+	int iQuadWidth= 400;
+	int iQuadHeight = 200;
+	
+	glMatrixMode( GL_PROJECTION );
+	glLoadIdentity();
+	gluOrtho2D( 0.0f, iScreenWidth, 0.0f, iScreenHeight );
+	glMatrixMode( GL_MODELVIEW );
+	glLoadIdentity();
+	
+	glDisable( GL_LIGHTING );
+	glDisable( GL_CULL_FACE );
+	glDisable( GL_DEPTH_TEST );
+
+	glBindTexture( GL_TEXTURE_2D, iTextureID[0] );	
+	glEnable( GL_TEXTURE_2D );
+	glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
 
 
+	glBegin(GL_QUADS);
+		glTexCoord2i( 0, 0 );	
+		glVertex2i( iScreenWidth-iQuadWidth, iScreenHeight-iQuadHeight );
+		
+		glTexCoord2i( 0, 1 );
+		glVertex2i( iScreenWidth, iScreenHeight-iQuadHeight );
+		
+		glTexCoord2i( 1, 1 );
+		glVertex2i( iScreenWidth, iScreenHeight );
+		
+		glTexCoord2i( 1, 0 );
+		glVertex2i( iScreenWidth-iQuadWidth, iScreenHeight );
+	glEnd();
 
-
-
+	glFlush();	
+	glDisable( GL_TEXTURE_2D );
+	
+	glEnable( GL_CULL_FACE );
+	glEnable( GL_DEPTH_TEST );
+	glEnable( GL_LIGHTING );
+	}
 
 
 
@@ -545,6 +722,11 @@ void CMyRenderer::SimulateDOF()
 	glDisable(GL_LIGHTING);
 	glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
+
+	//Clear this
+	//glReadPixels( 0,0, iScreenWidth, iScreenHeight, GL_RGBA, GL_FLOAT, iPixelBuffer2 );
+	delete iPixelBuffer2;
+	iPixelBuffer2 = new float[iScreenWidth*iScreenHeight*4];
 
 	//SET THE READING BUFFER
 	glReadBuffer( GL_BACK );
@@ -576,7 +758,7 @@ void CMyRenderer::ModifyPixels()
 
 	//- LENS COEFFICIENTS
 	float relativeLensPosition = 6.0f; //0.1f; //s
-	float focalLength  = 5.5f; // f; 
+	float focalLength  = 5.4f; // f; 
 	float aperture = 150.0f; //2.8f;
 
 	for(int y=0; y<iScreenHeight; y++)
@@ -599,8 +781,8 @@ void CMyRenderer::ModifyPixels()
 
 				//Calculate the circle of confusion:
 				//cocDiameter = 30*pixelDepth;//pixelDepth; //abs(  aperture * ( relativeLensPosition*( 1.0f/focalLength - 1.0f/pixelDepth)-1) );
-				//cocDiameter = abs(  aperture * ( relativeLensPosition*( 1.0f/focalLength - 1.0f/pixelDepth)-1) );
-				cocDiameter = (1-pdOrig)*5+abs(  aperture * ( relativeLensPosition*( 1.0f/focalLength - 1.0f/pixelDepth)-1) );
+				cocDiameter = 2.0f+abs(  aperture * ( relativeLensPosition*( 1.0f/focalLength - 1.0f/pixelDepth)-1) );
+				//cocDiameter = (1-pdOrig)*5+abs(  aperture * ( relativeLensPosition*( 1.0f/focalLength - 1.0f/pixelDepth)-1) );
 				//cocDiameter = abs(  aperture * ( pow(relativeLensPosition*( (1.0f/focalLength)-(1.0f/(pixelDepth))-1),2) ));
 
 				//Apply the filter accordingly:
@@ -699,17 +881,9 @@ void CMyRenderer::ApplyFilter(int aCocDiameter, int aX, int aY )
 
 void CMyRenderer::DrawSceneNode( CSceneNode* aNode )
 	{
-
-	//---------------------------------------------------------------
-	// PUSH NEW TRANSFORM ON TOP OF CTM (SAVING PARENT NODE'S MATRIX)
-	//---------------------------------------------------------------
-	// MULTIPLY NEW TRANSFORM(with the CTM)...
+	// Push old transform (saving parent node's matrix)
 	glPushMatrix();
 
-//	TMatrix4 m( iCTM.at(iCTM.size()-1) );
-//	m*=aNode->getLocalTransform();
-	//...PUSH IT TO THE CTM
-//	iCTM.push_back(m);
 
 
 	//----------------------
@@ -717,24 +891,25 @@ void CMyRenderer::DrawSceneNode( CSceneNode* aNode )
 	//----------------------
 	switch(aNode->getNodeType())
 		{
+		//===============================
 		// BASE NODE
+		//===============================
 		case CSceneNode::EBaseNode:
 			{
 			}
 			break;
-
 		//===============================
 		// MESH NODE ->
 		//	* NEEDS TO BE RENDERED *
 		//===============================
 		case CSceneNode::EMeshNode:
 			{
+			CSceneMesh* mNode=reinterpret_cast<CSceneMesh*>(aNode);
+
 			//Create a temporary object
-			iMesh = new CMesh( *aNode->getMesh() );
+			iMesh = new CMesh( *(mNode->GetMesh()) );
 			if(NULL!=iMesh)
 				{
-				//glScalef( iScale );
-				//glutSolidSphere (1.0, 20, 16);
 				RenderPipeLine( );
 
 				//Object center
@@ -743,30 +918,31 @@ void CMyRenderer::DrawSceneNode( CSceneNode* aNode )
 					TVector3 objCenter = TVector3(0,0,0); //iPerspectiveMatrix.multAndNormalizeW( m.mult( TVector3(0,0,0) ) );
 					DrawAxisMark( objCenter.iX, objCenter.iY, objCenter.iZ, 0.05 );
 					}
-
 				//Delete the temporary object
 				delete iMesh;
 				}
 			}
 			break;
-
+		//===============================
 		// ROTATION NODE
+		//===============================
 		case CSceneNode::ERotationNode:
 			{
-			//CSceneRotation* rNode=reinterpret_cast<CSceneRotation*>(aNode);
-			//glRotatef( rNode->iAngle, rNode->iAxis.iX, rNode->iAxis.iY, rNode->iAxis.iZ);
-			glRotatef( 40, 0,1,-1);
+			CSceneRotation* rNode=reinterpret_cast<CSceneRotation*>(aNode);
+			glRotatef( rNode->iAngles.iRotX, 1,0,0 );
+			glRotatef( rNode->iAngles.iRotY, 0,1,0 );
+			glRotatef( rNode->iAngles.iRotZ, 0,0,1 );
 			}
 			break;
-
+		//===============================
 		// TRANSLATION NODE
+		//===============================
 		case CSceneNode::ETranslationNode:
 			{
 			CSceneTranslation* tNode=reinterpret_cast<CSceneTranslation*>(aNode);
 			glTranslatef(tNode->iX, tNode->iY, tNode->iZ);
 			}
 			break;
-
 		// UNKNOWN NODE
 		default:
 			{
@@ -776,7 +952,7 @@ void CMyRenderer::DrawSceneNode( CSceneNode* aNode )
 	//-------------------------------
 	// BROWSE THE CHILDREN...
 	//-------------------------------
-	for(int i=0; i<aNode->getChildAmount();i++)
+	for(int i=0, j=aNode->getChildAmount(); i<j; i++)
 		{
 		DrawSceneNode( aNode->getChild(i) );
 		}
@@ -784,10 +960,8 @@ void CMyRenderer::DrawSceneNode( CSceneNode* aNode )
 	//-------------------------------
 	// POP THE PARENT NODE'S MATRIX
 	//-------------------------------
-	//iCTM.pop_back();
 	glPopMatrix();
 	}
-
 
 
 void CMyRenderer::RenderPipeLine( )
@@ -800,15 +974,12 @@ void CMyRenderer::RenderPipeLine( )
 	int vertCount(	 static_cast<int>( iMesh->iVertices.size()    ) );
 	int normalCount( static_cast<int>( iMesh->iFaceNormals.size() ) );
 	//bool iUseVertexNormals = (normalCount==vertCount)?true:false;
-	bool visibility(true);
 
 	TVector3  vx[3];//v1, v2, v3;
 	TVector3  nv[3];//nv1, nv2, nv3;
 	TColorRGB triangleColor;//nv1, nv2, nv3;
-	TColorRGB lightColors[3];
 
 	TTriangle t;
-
 	//Go through the Mesh Polygon by polygon
 	for (int triangleIndex=0, triangleCount=static_cast<int>(iMesh->iTriangles.size()); triangleIndex<triangleCount; triangleIndex++)
 		{
@@ -836,14 +1007,13 @@ void CMyRenderer::RenderPipeLine( )
 				nv[0] = iMesh->iFaceNormals.at(triangleIndex);
 				nv[1] = nv[2] = nv[0];
 				}
-
-			DrawOnScreen( &vx[0], &nv[0], &lightColors[0], triangleColor,  true );
+			DrawOnScreen( &vx[0], &nv[0], triangleColor );
 			}
 		}
 	}
 
 
-void CMyRenderer::DrawOnScreen( TVector3 aVx[], TVector3 aNv[], TColorRGB aLightColors[], TColorRGB aTriangleColor, bool aVisibility )
+void CMyRenderer::DrawOnScreen( TVector3 aVx[], TVector3 aNv[], TColorRGB aTriangleColor )
 	{
 	//Check if normal vectors are by vertex, or by polygon
 	//bool vertexNormalsUsed = ( TVector3() == aNv[1] )?false:true;
@@ -866,28 +1036,16 @@ void CMyRenderer::DrawOnScreen( TVector3 aVx[], TVector3 aNv[], TColorRGB aLight
 			DrawWireTriangle( aVx[0], aVx[1], aVx[2], 1, 1, 1);
 			break;
 		case ERenderFaceShadedCulled:
-			if(aVisibility)
+			if(iUseVertexNormals)
 				{
-				if(iUseVertexNormals)
-					{
-					//USE LIGHTS
-					//DrawTriangle(aVx[0], aVx[1], aVx[2], aLightColors[0], aLightColors[1], aLightColors[2] );
-					//DrawTriangle( aVx[0], aVx[1], aVx[2], aTriangleColor.getR(), aTriangleColor.getG(), aTriangleColor.getB() );
-					aLightColors[0]=aTriangleColor;
-					DrawTriangle(aVx, aNv, aLightColors );
-					}
-				else
-					{
-					//USE LIGHTS
-					DrawTriangle(aVx[0], aVx[1], aVx[2], aLightColors[0] );
-					}
+				DrawTriangle(aVx, aNv, aTriangleColor );
 				}
 			break;
 		default:
 			//on default don't render any geometry
 			break;
 		}
-	if( (iNormalsDrawn ) && aVisibility)
+	if(iNormalsDrawn )
 		{
 		if( iUseVertexNormals )
 			{

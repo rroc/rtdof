@@ -28,6 +28,7 @@ class TVector3
 		~TVector3(){};
 
 		TVector3 normalize();
+		TVector3 normalize() const;
 		float length() const;
 
 		TVector3 cross(const TVector3&) const;
@@ -81,6 +82,27 @@ TVector3 TVector3::normalize()
 			,this->iZ / length
 			);
 	}
+
+
+/// Method that normalizes the vector to unit length
+inline
+TVector3 TVector3::normalize() const
+	{
+    float length = this->length();
+
+	//Make sure its not too short
+    if(0.0 == length) length=1;
+
+	//return the normalized vector
+	return TVector3
+			(
+			 this->iX / length
+			,this->iY / length
+			,this->iZ / length
+			);
+	}
+
+
 
 /** \brief Cross(vector) product of two vectors (this . _v1)
 *	\param _v1 the vector that this should be crossed with

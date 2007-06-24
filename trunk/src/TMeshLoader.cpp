@@ -24,7 +24,7 @@ TMeshLoader::~TMeshLoader()
 	{
 	}
 
-bool TMeshLoader::Load3DS( CMesh& aMesh, char* aFileName )
+bool TMeshLoader::Load3DS( CMesh& aMesh, char* aFileName, float aScale )
 	{
 	fstream dataFile( aFileName, ios::in | ios::binary );
 	// exit program if fstream cannot open file
@@ -131,7 +131,7 @@ bool TMeshLoader::Load3DS( CMesh& aMesh, char* aFileName )
 					dataFile.read( reinterpret_cast<char *>(&x), sizeof (float) );
 					dataFile.read( reinterpret_cast<char *>(&y), sizeof (float) );
 					dataFile.read( reinterpret_cast<char *>(&z), sizeof (float) );
-					vertex.set( x/30, y/30, z/30 );
+					vertex.set( x*aScale, y*aScale, z*aScale );
 					aMesh.iVertices.push_back(vertex);
 					}
 				}
@@ -186,6 +186,8 @@ bool TMeshLoader::Load3DS( CMesh& aMesh, char* aFileName )
 					{
 					dataFile.read( reinterpret_cast<char *>(&u), sizeof(float) );
 					dataFile.read( reinterpret_cast<char *>(&v), sizeof(float) );
+					
+					//aMesh.iTextureCoords.push_back(TVector3(u*aScale,v*aScale,0));
 					}
 				}
                 break;
