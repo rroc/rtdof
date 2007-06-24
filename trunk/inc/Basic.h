@@ -33,6 +33,8 @@
 #elif defined _WIN32
 #include <GL/glew.h>
 #include <GL/glut.h>    // Header File For The GLUT Library
+
+const float pi ( 3.1415926535897932384626433832795f );	///< pi
 #endif
 
 #include "myLab.h"		//Global defines

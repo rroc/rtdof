@@ -2,16 +2,20 @@
 #define PROJECT_DOF_H
 
 //ALL GLOBAL DEFINES
-#define USE_SIN_TABLE
+//#define USE_SIN_TABLE
+#define USE_SYMBIAN_STYLE_CONSTANTS
 
 //#define USE_FPS_LIMIT
 #define USE_OPENGL_RENDERER
 
+//These you need to enable for the real-time Depth of Field
 #define USE_VERTEX_ARRAYS
-
-#define USE_SYMBIAN_STYLE_CONSTANTS
 #define USE_FBO
 #define USE_SHADER
+
+//This you define to simulate the real leans effect in more detail (not realtime)
+//#define USE_PIXEL_READ_DOF
+
 
 //OPENGL uses degrees...
 #ifdef USE_OPENGL_RENDERER

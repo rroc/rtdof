@@ -11,6 +11,7 @@ const float KAngleChangeAmount = 0.05f;
 
 const float KScaleChangeAmount = 1.0f;
 const float KFocusChangeAmount = 0.0005f;
+const float KFocusAreaAmount = 1.0f;
 
 //INIT STATIC DATA
 CMyUiEvents* CMyUiEvents::iCurrentUi = 0;
@@ -54,21 +55,11 @@ void CMyUiEvents::ProcessNormalKeys(unsigned char key, int x, int y)
 
 		//CHANGE RENDERER
 		case '-':
-			renderType = iRenderer->RenderType();
-			if( 0 > --renderType )
-				{
-				renderType = (CMyRenderer::EEmpty)-1;
-				}
-			iRenderer->SetRenderType( static_cast<CMyRenderer::TRenderType>(renderType) );
+			iRenderer->ChangeFocusArea( -KFocusAreaAmount );
 			break;
 
 		case '+':
-			renderType = iRenderer->RenderType();
-			if( CMyRenderer::EEmpty == ++renderType )
-				{
-				renderType = CMyRenderer::ERenderVertices;
-				}
-				iRenderer->SetRenderType( static_cast<CMyRenderer::TRenderType>(renderType) );
+			iRenderer->ChangeFocusArea( KFocusAreaAmount );
 			break;
 
 		//SCALE MESH
@@ -86,54 +77,44 @@ void CMyUiEvents::ProcessNormalKeys(unsigned char key, int x, int y)
 			break;
 
 		//MODIFY MESH X
-        case 'd':
-			changes.iRotX += KAngleChangeAmount;
-			break;
-        case 'a':
-			changes.iRotX -= KAngleChangeAmount;
-			break;
-		//MODIFY MESH Y
-        case 'w':
-			changes.iRotY += KAngleChangeAmount;
-			break;
-        case 's':
-			changes.iRotY -= KAngleChangeAmount;
-		    break;
-		//MODIFY MESH Z
-		case '3':
-			changes.iRotZ += KAngleChangeAmount;
-			break;
-        case 'e':
-			changes.iRotZ -= KAngleChangeAmount;
-		    break;
+  //      case 'd':
+		//	changes.iRotX += KAngleChangeAmount;
+		//	break;
+  //      case 'a':
+		//	changes.iRotX -= KAngleChangeAmount;
+		//	break;
+		////MODIFY MESH Y
+  //      case 'w':
+		//	changes.iRotY += KAngleChangeAmount;
+		//	break;
+  //      case 's':
+		//	changes.iRotY -= KAngleChangeAmount;
+		//    break;
+		////MODIFY MESH Z
+		//case '3':
+		//	changes.iRotZ += KAngleChangeAmount;
+		//	break;
+  //      case 'e':
+		//	changes.iRotZ -= KAngleChangeAmount;
+		//    break;
 
-		//RESET MESH Base angle as well
-		case '1':
-			changes.iRotX = changes.iRotY = changes.iRotZ = 0.0;
-			//Wait until change is ok
-			while(iRenderer->TransformInProcess());
-			iRenderer->SetRotAngles(TAngles(0,0,0));
-		    break;
-		//FREEZE MESH ROTATION
-		case 'q':
-			changes.iRotX = changes.iRotY = changes.iRotZ = 0.0;
-			break;
+		////RESET MESH Base angle as well
+		//case '1':
+		//	changes.iRotX = changes.iRotY = changes.iRotZ = 0.0;
+		//	iRenderer->SetRotAngles(TAngles(0,0,0));
+		//    break;
+		////FREEZE MESH ROTATION
+		//case 'q':
+		//	changes.iRotX = changes.iRotY = changes.iRotZ = 0.0;
+		//	break;
 		//---temp
-		case '8':
-			iRenderer->iAmountOfTriangles++;
-			break;
-		//---temp
-		case '7':
-			iRenderer->iAmountOfTriangles--;
-			break;
+
 		//undefined key
 		default:
 			break;
 		}
 	if(changes != savedChanges)
 		{
-		//Wait until change is ok
-		while(iRenderer->TransformInProcess());
 		iRenderer->SetRotAngles( changes );
 		}
 	}
@@ -169,9 +150,6 @@ void CMyUiEvents::ProcessCursorKeys(int key, int x, int y)
 		//RESET Base angle as well
 		case GLUT_KEY_HOME:
 			changes.iRotX = changes.iRotY = changes.iRotZ = 0.0;
-
-			//Wait until change is ok
-			while(iRenderer->TransformInProcess());
 			iRenderer->SetCurrentAngles(0,0,0);
 		    break;
 		//FREEZE
@@ -179,8 +157,6 @@ void CMyUiEvents::ProcessCursorKeys(int key, int x, int y)
 			changes.iRotX = changes.iRotY = changes.iRotZ = 0.0;
 			break;
 		}
-	//Wait until change is ok
-	while(iRenderer->TransformInProcess());
 	iRenderer->SetAnglesChange( changes );
 	}
 

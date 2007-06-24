@@ -45,6 +45,7 @@ class CMesh {
 		void calculateVertexNormals();
 		void setSolidColor(float aR, float aG, float aB);
 		virtual void randomColors();
+		void randomColors( TColorRGB& aColorMult, float aBase );
 
 		void CMesh::subDivide( long aDepth );
 	public:
